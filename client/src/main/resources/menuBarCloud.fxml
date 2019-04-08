@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml">
+    <MenuBar fx:id="menuBar1" HBox.hgrow="ALWAYS">
+        <menus>
+            <Menu text="File">
+                <items>
+                    <MenuItem text="New"/>
+                    <MenuItem text="Open"/>
+                    <MenuItem text="Save"/>
+                    <MenuItem text="Save As"/>
+                    <SeparatorMenuItem  />
+                    <MenuItem text="Exit"/>
+                </items>
+            </Menu>
+            <Menu text="Edit">
+                <items>
+                    <MenuItem text="Copy"/>
+                    <MenuItem text="Cut"/>
+                    <MenuItem text="Paste"/>
+                </items>
+            </Menu>
+            <Menu text="Help">
+                <items>
+                    <MenuItem text="Search" disable="true"/>
+                    <MenuItem text="Online Manual" visible="false"/>
+                    <SeparatorMenuItem />
+                    <MenuItem text="About" />
+                </items>
+            </Menu>
+        </menus>
+    </MenuBar>
+</HBox>
