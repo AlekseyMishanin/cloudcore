@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+
+
+<ContextMenu fx:id="contextMenu" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="controller.ContextMenuController">
+    <items>
+        <Menu text="New">
+            <MenuItem fx:id="newFile" text="File" onAction="#newObjectFile"/>
+            <MenuItem fx:id="newCatalog" text="Catalog" onAction="#newObjectCatalog"/>
+        </Menu>
+        <MenuItem text="Open"/>
+        <MenuItem text="Save"/>
+        <MenuItem text="Save As"/>
+        <SeparatorMenuItem  />
+        <MenuItem text="Exit"/>
+    </items>
+</ContextMenu>
