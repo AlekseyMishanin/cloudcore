@@ -47,7 +47,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>ru.mishanin.client.Main</mainClass>
+                            <mainClass>ru.mishanin.cloudcore.client.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -61,7 +61,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>ru.mishanin.client.Main</mainClass>
+                            <mainClass>ru.mishanin.cloudcore.client.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

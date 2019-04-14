@@ -1,0 +1,41 @@
+#rootNode{
+    -fx-background-color: image-pattern("foreground_cloud_auth.jpg");
+}
+
+#titled .content{
+    -fx-background-color: transparent;
+    -fx-border-radius: 6em 8em 3em 3em;
+    -fx-border-insets: 5;
+}
+
+#titled .button{
+    -fx-background-color: transparent;
+    -fx-border-radius: 8em;
+    -fx-border-color: white;
+    -fx-text-fill: #7fffd4;
+}
+
+#titled .button:hover{
+    -fx-text-fill: black;
+}
+
+#titled .label{
+    -fx-text-fill: #7fffd4;
+}
+
+#titled .text-field{
+    -fx-background-color: transparent;
+    -fx-text-fill: #00ff00;
+}
+
+#titled .title {
+    -fx-background-color: transparent;
+}
+
+#titled .title .arrow-button .arrow{
+    -fx-background-color: #f5f5dc;
+}
+
+
+
+

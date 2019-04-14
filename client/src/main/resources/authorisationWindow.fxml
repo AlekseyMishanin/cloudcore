@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.paint.Color?>
+<StackPane fx:id="rootNode"
+           fx:controller="controller.AuthorisationController"
+           xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           stylesheets="@/css/authorisation.css">
+    <TitledPane fx:id="titled" text="Sign in" expanded="false" maxWidth="280">
+        <textFill><Color fx:value="#f5f5dc"/></textFill>
+        <content>
+            <GridPane vgap="4">
+                <padding>
+                    <Insets bottom="5" left="5" right="5" top="5"/>
+                </padding>
+                <HBox spacing="3" GridPane.columnIndex="0" GridPane.rowIndex="0" alignment="CENTER_RIGHT">
+                    <Label text="Login"/>
+                    <TextField fx:id="login" promptText="Enter login..." GridPane.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="3" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label text="Password"/>
+                    <PasswordField fx:id="password" promptText="Enter password..."/>
+                </HBox>
+                <HBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2" alignment="CENTER">
+                    <Button fx:id="btnAuth" text="Ok" onAction="#btnClick"/>
+                    <Label fx:id="msg" text=""/>
+                </HBox>
+            </GridPane>
+        </content>
+    </TitledPane>
+</StackPane>
