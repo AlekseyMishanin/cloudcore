@@ -29,7 +29,7 @@
         </padding>
         <TreeView fx:id="treeVievClient" HBox.hgrow="ALWAYS">
             <contextMenu>
-                <fx:include source="contextMenu.fxml" fx:id="cMenu"/>
+                <fx:include source="ContextMenu.fxml" fx:id="cMenu"/>
             </contextMenu>
             <tooltip><Tooltip text="Файловая система локального компьютера"/></tooltip>
         </TreeView>
