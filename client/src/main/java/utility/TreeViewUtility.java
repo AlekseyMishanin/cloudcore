@@ -92,9 +92,11 @@ public class TreeViewUtility {
             TreeItem<ExtFile> parentForNewItemTree = getParentCatalog(selectedItem);
             if(parentForNewItemTree == null) return;
             try {
-                Files.copy(bufferForCopyAndCut,Paths.get(getPathFromTreeItem(selectedItem)));
+                Path copyToPath = Files.isDirectory(Paths.get(getPathFromTreeItem(selectedItem))) ? Paths.get(getPathFromTreeItem(selectedItem)) : Paths.get(getPathFromTreeItem(selectedItem)).getParent();
+                Files.copy(bufferForCopyAndCut,copyToPath.resolve(bufferForCopyAndCut.getFileName()));
+                String temp = bufferForCopyAndCut.getFileName().toString();
                 Platform.runLater(() -> {
-                    TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(bufferForCopyAndCut.getFileName().toString()));     //создаем элемент с новым именем
+                    TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(temp));     //создаем элемент с новым именем
                     parentForNewItemTree.getChildren().add(newTreeItem);
                     tree.getSelectionModel().select(newTreeItem);
                 });
@@ -108,15 +110,20 @@ public class TreeViewUtility {
             TreeItem<ExtFile> parentForNewItemTree = getParentCatalog(selectedItem);
             if(parentForNewItemTree == null) return;
             try {
-                Files.copy(bufferForCopyAndCut,Paths.get(getPathFromTreeItem(selectedItem)));
+                Path copyToPath = Files.isDirectory(Paths.get(getPathFromTreeItem(selectedItem))) ? Paths.get(getPathFromTreeItem(selectedItem)) : Paths.get(getPathFromTreeItem(selectedItem)).getParent();
+                Files.copy(bufferForCopyAndCut,copyToPath.resolve(bufferForCopyAndCut.getFileName()));
+                String temp = bufferForCopyAndCut.getFileName().toString();
                 Files.walkFileTree(bufferForCopyAndCut, fileVision);
                 Platform.runLater(() -> {
-                    TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(bufferForCopyAndCut.getFileName().toString()));     //создаем элемент с новым именем
+                    TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(temp));     //создаем элемент с новым именем
                     parentForNewItemTree.getChildren().add(newTreeItem);
                     tree.getSelectionModel().select(newTreeItem);
+                    if(itemForCut!=null)
+                    {
+                        itemForCut.getParent().getChildren().remove(itemForCut); //удаляем из дерева вырезанный элемент
+                        itemForCut = null;
+                    }
                 });
-                itemForCut.getParent().getChildren().remove(itemForCut); //удаляем из дерева вырезанный элемент
-                itemForCut = null;
             } catch (IOException e) {
                 StaticAlert.showAlertError(e);
             } finally {
@@ -162,7 +169,6 @@ public class TreeViewUtility {
         }
     }
 
-    //протестировать
     public static void searchObjectAndTreeItem(@NonNull TreeView<ExtFile> tree){
         TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
         String strPath = getPathFromTreeItem(selectedItem);
@@ -192,6 +198,9 @@ public class TreeViewUtility {
             Path source = Paths.get(getPathFromTreeItem(selectedItem));
             try {
                 Files.walkFileTree(source, fileVision);
+                Platform.runLater(() -> {
+                    selectedItem.getParent().getChildren().remove(selectedItem); //удаляем из дерева вырезанный элемент
+                });
             } catch (IOException e) {
                 StaticAlert.showAlertError(e);
             } finally {

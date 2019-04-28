@@ -3,8 +3,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import net.NettyNetwork;
 
+import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Scanner;
 
 
 public class Main extends Application {
@@ -21,4 +24,17 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+//
+//    public static void main(String[] args) throws InterruptedException {
+//        NettyNetwork.getInstance().start();
+//        Scanner sc = new Scanner(System.in);
+//        while (sc.hasNext()){
+//            if(sc.nextInt()==1){
+//                NettyNetwork.getInstance().sendData("test", Paths.get("clientA/","1.txt"));
+//            }
+//            if(sc.nextInt()==2){
+//                NettyNetwork.getInstance().loadData("test", Paths.get("2.txt"));
+//            }
+//        }
+//    }
 }

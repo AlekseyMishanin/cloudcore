@@ -12,13 +12,13 @@ public class FileVisionSearch extends SimpleFileVisitor<Path> {
     private StringBuilder report = new StringBuilder();
 
     public FileVisitResult visitFile(Path path, BasicFileAttributes attrib) throws IOException {
-        if(path.endsWith(nameSearchObject)) report.append("Success\t" + path.toString() + "\n");
+        if(path.getFileName().toString().indexOf(nameSearchObject)!=-1) report.append("Success\tfile\t" + path.toString() + "\n");
         return FileVisitResult.CONTINUE;
     }
 
     @Override
     public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-        if(dir.endsWith(nameSearchObject)) report.append("Success\t" + dir.toString() + "\n");
+        if(dir.toAbsolutePath().toString().indexOf(nameSearchObject)!=-1) report.append("Success\tcatalog\t" + dir.toString() + "\n");
         return FileVisitResult.CONTINUE;
     }
 

@@ -8,9 +8,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.serialization.ClassResolvers;
-import io.netty.handler.codec.serialization.ObjectDecoder;
-import io.netty.handler.codec.serialization.ObjectEncoder;
+import model.PackageBody;
+import protocol.*;
 
 public class ServerNetty {
 
@@ -24,11 +23,16 @@ public class ServerNetty {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(
-                                    new ObjectDecoder(50*1024*1024, ClassResolvers.cacheDisabled(null)),
-                                    new ObjectEncoder(),
-                                    new MainHandler()
-                            );
+                            PackageBody packageBody = new PackageBody();
+                            socketChannel.pipeline()
+                                    .addLast("command",new CommandHandler(packageBody))
+                                    .addLast("lengthUserName",new ToIntegerDecoder(packageBody))
+                                    .addLast("userName",new ByteToNameUserHandler(packageBody))
+                                    .addLast("lengthFileName",new ToIntegerDecoder(packageBody))
+                                    .addLast("fileName",new ByteToNameFileHandler(packageBody))
+                                    .addLast("lengthFile",new ToLongDecoder(packageBody))
+                                    .addLast("loadfile",new ByteToFileServerHandler(packageBody))
+                                    .addLast("sendfile", new FileToByteHandler(packageBody));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
