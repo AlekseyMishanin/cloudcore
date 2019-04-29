@@ -1,17 +1,23 @@
 package db;
 
+import lombok.NonNull;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class AuthService extends DB_mysql{
 
+    private static AuthService authService = new AuthService();
     private Statement statement = null;
 
-    public AuthService(){
-        setURL("localhost", "chat", 3306);
-        connect("root", "lelybr");
+    private AuthService(){
+        setURL("localhost", "test", 3306);
+        connect("test", "test");
+        connect();
     }
+
+    public static AuthService getInstance(){ return authService;}
 
     public void connect() {
         try {
@@ -19,6 +25,17 @@ public class AuthService extends DB_mysql{
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean verifyLoginAndPass(@NonNull String login, @NonNull String pass){
+        String sql = String.format("SELECT id FROM test.users WHERE login =\"%s\" AND password = %d",login,Integer.parseInt(pass));
+        try {
+            ResultSet rs = statement.executeQuery(sql);
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 //    public String getNickByLoginAndPass(String login, String password) {

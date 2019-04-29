@@ -27,8 +27,11 @@
                 </HBox>
                 <HBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2" alignment="CENTER">
                     <Button fx:id="btnAuth" text="Ok" onAction="#btnClick"/>
-                    <Label fx:id="msg" text=""/>
+                    <CheckBox fx:id="checkReg" text="registration">
+                       <tooltip><Tooltip text="If you do not have a login/password, you can register"/> </tooltip>
+                    </CheckBox>
                 </HBox>
+                <Label fx:id="msg" text="" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.halignment="CENTER"/>
             </GridPane>
         </content>
     </TitledPane>

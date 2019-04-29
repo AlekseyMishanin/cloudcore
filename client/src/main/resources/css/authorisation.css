@@ -15,6 +15,14 @@
     -fx-text-fill: #7fffd4;
 }
 
+#checkReg {
+    -fx-text-fill: #7fffd4;
+}
+
+#checkReg .box {
+    -fx-background-color: transparent;
+}
+
 #titled .button:hover{
     -fx-text-fill: black;
 }
