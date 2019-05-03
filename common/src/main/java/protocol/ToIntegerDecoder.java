@@ -25,32 +25,34 @@ public class ToIntegerDecoder extends AbstractHandler {
         //если пакет содержит нужную команду и статус
         if((packageBody.getCommand() != ProtocolCommand.FILEERROR ||
                 packageBody.getCommand() !=null) &&
-                packageBody.getStatus() == PackageBody.Status.READLENGTHUSER) {
+                (packageBody.getStatus() == PackageBody.Status.READLENGTHUSER ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHSTRUCTURE ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHPATHCATALOG)) {
             //если для чтения доступно менее 4-х байт
             if (buf.readableBytes() < 4) {
                 //прекращаем обарботку
                 return;
             }
-            //записываем int в поле длины имени пользователя
-            packageBody.setLenghUserName(buf.readInt());
-            //присваиваем пакету статус: чтение имени пользователя
-            packageBody.setStatus(PackageBody.Status.READNAMEUSER);
-            //System.out.println(2);
-
-            //если пакет содержит нужную команду и статус
-        } else if((packageBody.getCommand() != ProtocolCommand.FILEERROR ||
-                packageBody.getCommand() != null) &&
-                packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE) {
-            //если для чтения доступно менее 4-х байт
-            if (buf.readableBytes() < 4) {
-                //прекращаем обарботку
-                return;
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHUSER) {
+                //записываем int в поле длины имени пользователя
+                packageBody.setLenghUserName(buf.readInt());
+                //присваиваем пакету статус: чтение имени пользователя
+                packageBody.setStatus(PackageBody.Status.READNAMEUSER);
             }
-            //записываем int в поле длины имени файла
-            packageBody.setLenghFileName(buf.readInt());
-            //присваиваем пакету статус: чтение имени файла
-            packageBody.setStatus(PackageBody.Status.READNAMEFILE);
-            //System.out.println(4);
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE){
+                packageBody.setLenghFileName(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READNAMEFILE);
+            }
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHSTRUCTURE){
+                packageBody.setLengthStructure(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READSTRINGSTRUCTURE);
+            }
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHPATHCATALOG){
+                packageBody.setLengthVariable(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READPATHNEWCATALOG);
+            }
+            
         }
         //пересылаем сообщение следующему ChannelHandler
         ctx.fireChannelRead(msg);

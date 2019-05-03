@@ -37,9 +37,15 @@ public class ByteToNameUserHandler extends AbstractHandler {
             buf.readBytes(data);
             //в пакете присваиваем новое имя пользователя
             packageBody.setNameUser(new String(data));
-            //присваиваем статус: чтение длины имени файла
-            packageBody.setStatus(PackageBody.Status.READLENGTHNAMEFILE);
-            //System.out.println(3);
+            if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION ||
+                    packageBody.getCommand() == ProtocolCommand.REGISTRATION)
+            {
+                packageBody.setStatus(PackageBody.Status.READPASSWORD);
+            } else {
+                //присваиваем статус: чтение длины имени файла
+                packageBody.setStatus(PackageBody.Status.READLENGTHNAMEFILE);
+                //System.out.println(3);
+            }
         }
         //отправляем сообщение к следующему ChannelHandler
         ctx.fireChannelRead(msg);

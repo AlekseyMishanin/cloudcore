@@ -10,7 +10,6 @@
             <MenuItem fx:id="newFile" text="File" onAction="#getMenuCommand"/>
             <MenuItem fx:id="newCatalog" text="Catalog" onAction="#getMenuCommand"/>
         </Menu>
-        <MenuItem fx:id="move" text="Move" onAction="#getMenuCommand"/>
         <Menu text="Edit">
             <MenuItem fx:id="copy" text="Copy" onAction="#getMenuCommand"/>
             <MenuItem fx:id="cut" text="Cut" onAction="#getMenuCommand"/>

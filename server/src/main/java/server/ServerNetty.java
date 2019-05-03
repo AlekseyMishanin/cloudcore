@@ -1,5 +1,6 @@
 package server;
 
+import db.AuthService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -14,6 +15,7 @@ import protocol.*;
 public class ServerNetty {
 
     public void run() throws Exception{
+        AuthService.getInstance().start();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
@@ -26,9 +28,13 @@ public class ServerNetty {
                             PackageBody packageBody = new PackageBody();
                             socketChannel.pipeline()
                                     .addLast("command",new CommandHandler(packageBody))
+                                    .addLast("getListCatalog",new StructureCatalogServerHandler(packageBody))
                                     .addLast("lengthUserName",new ToIntegerDecoder(packageBody))
                                     .addLast("userName",new ByteToNameUserHandler(packageBody))
+                                    .addLast("getNameNewCatalog", new ByteToNameCatalogHandler(packageBody))
+                                    .addLast("verifyRassword",new ByteToPasswordServerHandler(packageBody))
                                     .addLast("lengthFileName",new ToIntegerDecoder(packageBody))
+                                    .addLast("createNewCatalog", new NewCatalogServerHandler(packageBody))
                                     .addLast("fileName",new ByteToNameFileHandler(packageBody))
                                     .addLast("lengthFile",new ToLongDecoder(packageBody))
                                     .addLast("loadfile",new ByteToFileServerHandler(packageBody))

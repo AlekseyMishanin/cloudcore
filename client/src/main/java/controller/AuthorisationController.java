@@ -10,6 +10,9 @@ import javafx.scene.control.*;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import model.User;
+import net.NettyNetwork;
+import utility.ListController;
+
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,6 +26,7 @@ public class AuthorisationController {
     @FXML private TextField login;
     @FXML private PasswordField password;
     @FXML private Label msg;
+    @FXML private CheckBox checkReg;
     final private Timer timer = new Timer(true);              //таймер для запуска заданий
     private String name;                                               //имя пользователя
     private String pswd;                                               //пароль пользователя
@@ -34,11 +38,15 @@ public class AuthorisationController {
         EMPTYLOGIN,         //пустой логин
         EMPTYPASSWORD,      //пустой пароль
         EMPTYBOTH,          //пустой логин и пароль
-        BADLOGINORPASSWORD, //неправильный логин или пароль
-        GOOD                //правильный логин и пароль
+        REGISTRATIONGOOD,   //регистрация закончилась успехом
+        REGISTRATIONBAD,    //регистрация закончилась провалом
+        AUTHORISATIONGOOD,  //авторизация закончилась успехом
+        AUTHORISATIONBAD;   //авторизация закончилась провалом
     }
 
     public void initialize(){
+        NettyNetwork.getInstance().start();
+        ListController.getInstance().setAuthorisationController(this);
     }
     /**
      * Метод обработки события нажатия кнопки. При нажатии кнопки считывается текс из textfield с логином и паролем.
@@ -57,17 +65,19 @@ public class AuthorisationController {
         else if(pswd.isEmpty()) {
             statusProcessing(Status.EMPTYPASSWORD);
         }
-        else if(name.equals("test") && pswd.equals("test")){
-            statusProcessing(Status.GOOD);
-        } else {
-            statusProcessing(Status.BADLOGINORPASSWORD);
+        else {
+            if(checkReg.isSelected()){
+                NettyNetwork.getInstance().tryRegistration(name,Integer.parseInt(pswd));
+            } else {
+                NettyNetwork.getInstance().tryAuthorization(name,Integer.parseInt(pswd));
+            }
         }
     }
 
     /**
      * Метод обработки результат ввода логина и пароля. Если введен корректный логин и пароль, то вызявается метод
-     * @createNewScene() для создания новой сцены. В иных ситуациях выводится сообщение и предлагается ввести логин и
-     * пароль повторно
+     * @createNewScene() для создания новой сцены. В иных ситуациях выводится предупреждающее сообщение и
+     * предлагается ввести логин и пароль повторно
      * @param st - объект перечислимого типа описывающий результат ввода логина и пароля
      * */
     private void statusProcessing(Status st){
@@ -81,16 +91,43 @@ public class AuthorisationController {
             case EMPTYBOTH:
                 msg.setText("Login and password is empty...");
                 break;
-            case BADLOGINORPASSWORD:
-                msg.setText("Wrong login or password...");
+            case REGISTRATIONBAD:
+                msg.setText("Registration failed...");
                 break;
-            case GOOD:
-                createNewScene();
+            case AUTHORISATIONBAD:
+                msg.setText("Authorisation failed...");
+                break;
+            case REGISTRATIONGOOD:
+                msg.setText("Registration successful...");
+                break;
+            case AUTHORISATIONGOOD:
+                Platform.runLater(() -> {
+                    createNewScene();
+                });
                 break;
             default:
                 msg.setText("Unknown situation");
         }
         clear();
+    }
+
+    public void resultAuthorisation(boolean result){
+        Platform.runLater(() -> {
+            if(result){
+                statusProcessing(Status.AUTHORISATIONGOOD);
+            } else {
+                statusProcessing(Status.AUTHORISATIONBAD);
+            }
+        });
+    }
+    public void resultRegistration(boolean result){
+        Platform.runLater(() -> {
+            if(result){
+                statusProcessing(Status.REGISTRATIONGOOD);
+            } else {
+                statusProcessing(Status.REGISTRATIONBAD);
+            }
+        });
     }
 
     /**
@@ -115,6 +152,8 @@ public class AuthorisationController {
             ((Stage)rootNode.getScene().getWindow()).setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            ListController.getInstance().setAuthorisationController(null);
         }
     }
 

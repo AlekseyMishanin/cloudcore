@@ -6,11 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
+import java.io.FileOutputStream;
 
 /**
  * Класс инкапсулирует часть протокола, отвечающую за загрузку файла на локальную машину клиента.
@@ -20,42 +16,49 @@ import static java.nio.file.StandardOpenOption.CREATE;
 public class ByteToFileClientHandler extends AbstractHandler {
 
     private PackageBody packageBody;
+    private byte[] dataArr;
+    private FileOutputStream out;
 
     public ByteToFileClientHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+        dataArr = new byte[1024];
+    }
+
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //если пакет содержит нужную команду и статус
-        if(packageBody.getCommand() ==  ProtocolCommand.FILERESPONSE &&
+        if(packageBody.getCommand() == ProtocolCommand.FILERESPONSE &&
                 packageBody.getStatus() == PackageBody.Status.READFILE) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
             //System.out.println(7);
             //если в буфере есть данные для чтения
+            if(out == null) {out = new FileOutputStream("clientA/" + packageBody.getNameFile());}
             while (buf.isReadable()){
                 //определяем кол-во доступных для чтения байт
-                int j = buf.readableBytes();
-                //создаем временный буфер под байты
-                byte[] data= new byte[j];
-                //считываем данные во временный буфер
-                buf.readBytes(data);
+                int j = buf.readableBytes() > 1024 ? 1024 : buf.readableBytes();
+                //записываем байты во временный буфер
+                buf.readBytes(dataArr,0,j);
                 //записываем байты в файл
-                Files.write(Paths.get("clientA/", packageBody.getNameFile()), data, CREATE, APPEND);
+                out.write(dataArr,0,j);
                 //уменьшаем длину файла в пакете
                 packageBody.setLenghFile(packageBody.getLenghFile()-j);
-                //освобождаем сообщение
-                ReferenceCountUtil.release(msg);
             }
+            //освобождаем сообщение
+            ReferenceCountUtil.release(msg);
             //если не осталось байт для записи
             if (packageBody.getLenghFile() <= 0) {
-                //System.out.println(8);
-                //очищаем ракет
+                //очищаем пакет
                 packageBody.clear();
+                out.close();
+                out = null;
             }
         } else {
-            //отправляем сообщение к следующему ChannelHandler
             ctx.fireChannelRead(msg);
         }
     }

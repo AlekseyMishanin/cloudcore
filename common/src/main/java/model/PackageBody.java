@@ -10,13 +10,23 @@ public class PackageBody {
     //набор состояний определяющих логику следующего шага протокола
     public enum Status{
         NONE,                   //нет команды
+        READPASSWORD,           //читаем пароль
         READLENGTHUSER,         //читаем длину имени пользователя
         READNAMEUSER,           //читаем имя пользователя
         READLENGTHNAMEFILE,     //читаем длину имени файла
         READNAMEFILE,           //читаем имя файла
         READLENGTHFILE,         //читаем длину файла
         READFILE,               //читаем файл
-        WRITEFILE;              //записываем файл
+        WRITEFILE,              //записываем файл
+        READBOOLRESPONSE,       //читаем булевый ответ (используется при авторизации и регистрации)
+        BUILDSTRUCTURECATALOG,  //строим структуру каталогов/файлов
+        READLENGTHSTRUCTURE,    //читаем длину струкруты
+        READSTRINGSTRUCTURE,    //читаем строку струкруты
+        BUILDSTRUCTURE,         //строим структуру каталогов на стороне клиента
+        READLENGTHPATHCATALOG,    //читаем длину нового каталога
+        READPATHNEWCATALOG,     //читаем путь нового каталога
+      //  READLENGTHNAMECATALOG,
+        CREATENEWCATALOG;
     }
 
     private ProtocolCommand command;    //команда протокола
@@ -24,8 +34,15 @@ public class PackageBody {
     private int lenghUserName;          //длина имени пользователя
     private int lenghFileName;          //длина имени файла
     private long lenghFile;             //длина файла
+    private int lengthStructure;        //длина структуры каталогов
+  //  private int lengthNameCatalog;
+    private String structureCatalog;    //структура каталогов
+    private int lengthVariable;
+    private String variable;
     private String nameUser;            //имя пользователя
     private String nameFile;            //имя файла
+    private int idClient;
+    private boolean isCurrentUser;
 
     @Override
     public String toString() {
@@ -41,6 +58,8 @@ public class PackageBody {
     public PackageBody() {
         this.command = null;
         this.status = Status.NONE;
+        this.idClient = -1;
+        this.isCurrentUser = false;
     }
 
     public ProtocolCommand getCommand() {
@@ -48,9 +67,7 @@ public class PackageBody {
     }
 
     public void setCommand(ProtocolCommand command) {
-
         this.command = command;
-        this.status = Status.READLENGTHUSER;
     }
 
 
@@ -102,14 +119,58 @@ public class PackageBody {
         this.nameFile = nameFile;
     }
 
+    public int getIdClient() { return idClient; }
+
+    public void setIdClient(int idClient) { this.idClient = idClient; }
+
+    public boolean isCurrentUser() { return isCurrentUser; }
+
+    public void setCurrentUser(boolean currentUser) { isCurrentUser = currentUser; }
+
+    public int getLengthStructure() {
+        return lengthStructure;
+    }
+
+    public void setLengthStructure(int lengthStructure) {
+        this.lengthStructure = lengthStructure;
+    }
+
+    public String getStructureCatalog() {
+        return structureCatalog;
+    }
+
+    public void setStructureCatalog(String structureCatalog) {
+        this.structureCatalog = structureCatalog;
+    }
+
+    public int getLengthVariable() { return lengthVariable; }
+
+    public void setLengthVariable(int lengthVariable) { this.lengthVariable = lengthVariable; }
+
+    public String getVariable() { return variable; }
+
+    public void setVariable(String variable) { this.variable = variable; }
+
+   // public int getLengthNameCatalog() { return lengthNameCatalog; }
+
+  //  public void setLengthNameCatalog(int lengthNameCatalog) { this.lengthNameCatalog = lengthNameCatalog; }
+
     /**
      * Метод очищает основные поля класса.
      * */
     public void clear(){
+        if(!isCurrentUser) {
+            lenghUserName = 0;
+            nameUser = null;
+        }
         command = null;
         status = Status.NONE;
-        lenghFile = lenghFileName = lenghUserName = 0;
-        nameUser = null;
+        lenghFile = 0;
+        lenghFileName = 0;
+        lengthStructure = 0;
+        lengthVariable = 0;
         nameFile = null;
+        structureCatalog = null;
+        variable = null;
     }
 }

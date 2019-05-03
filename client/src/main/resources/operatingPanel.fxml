@@ -29,11 +29,14 @@
         </padding>
         <TreeView fx:id="treeVievClient" HBox.hgrow="ALWAYS">
             <contextMenu>
-                <fx:include source="ContextMenu.fxml" fx:id="cMenu"/>
+                <fx:include source="ContextMenu.fxml" fx:id="clientMenu"/>
             </contextMenu>
             <tooltip><Tooltip text="Файловая система локального компьютера"/></tooltip>
         </TreeView>
         <TreeView fx:id="treeVievCloud" HBox.hgrow="ALWAYS">
+            <contextMenu>
+                <fx:include source="ContextMenu.fxml" fx:id="cloudMenu"/>
+            </contextMenu>
             <tooltip><Tooltip text="Файловая система облачного хранилища"/></tooltip>
         </TreeView>
     </HBox>

@@ -30,6 +30,24 @@ public class CommandHandler extends AbstractHandler {
             byte firstByte = buf.readByte();
             //на основании значения байта определяем ProtocolCommand
             packageBody.setCommand(ProtocolCommand.getCommand(firstByte));
+            switch (ProtocolCommand.getCommand(firstByte)){
+                case AUTHRESPONSE:
+                case REGRESPONSE:
+                    packageBody.setStatus(PackageBody.Status.READBOOLRESPONSE);
+                    break;
+                case STRUCTUREREQUEST:
+                    packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURECATALOG);
+                    break;
+                case STRUCTURERESPONSE:
+                    //System.out.println(1);
+                    packageBody.setStatus(PackageBody.Status.READLENGTHSTRUCTURE);
+                    break;
+                case NEWCATALOG:
+                    packageBody.setStatus(PackageBody.Status.READLENGTHNEWCTALOG);
+                    break;
+                default:
+                    packageBody.setStatus(PackageBody.Status.READLENGTHUSER);
+            }
             //System.out.println(1);
         }
         //отправляем сообщение к следующему ChannelHandler

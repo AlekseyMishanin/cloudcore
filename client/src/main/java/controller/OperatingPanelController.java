@@ -9,6 +9,8 @@ import javafx.scene.layout.GridPane;
 import model.ExtFile;
 import model.MenuCommand;
 import model.User;
+import net.NettyNetwork;
+import utility.ListController;
 import utility.TreeViewUtility;
 
 import java.io.File;
@@ -21,14 +23,22 @@ public class OperatingPanelController implements Observer {
 
     @FXML private GridPane rootNode;
     @FXML private TreeView<ExtFile> treeVievClient;
+    @FXML private TreeView<ExtFile> treeVievCloud;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label labelStatus;
-    @FXML private ContextMenuController cMenuController;    //дочерний контроллер (контекстное меню)
+    @FXML private ContextMenuController clientMenuController;    //дочерний контроллер (контекстное меню)
+    @FXML private ContextMenuController cloudMenuController;     //дочерний контроллер (контекстное меню)
 
     public void initialize() throws IOException {
 
+        //присваиваем списку контроллеров ссылку на текущий контроллер
+        ListController.getInstance().setOperatingPanelController(this);
+        //запрашиваем у сервера структуру каталогов/файлов
+        NettyNetwork.getInstance().requestDirectoryStructure();
+
         File[] roots = File.listRoots();
         treeVievClient.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
+        treeVievCloud.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
         for (int i = 0; i < roots.length; i++) {
             TreeItem<ExtFile> rootChild = new TreeItem<>(new ExtFile(roots[i].getPath()));
             treeVievClient.getRoot().getChildren().addAll(rootChild);
@@ -65,7 +75,10 @@ public class OperatingPanelController implements Observer {
                 }
             }).start();
         });
-        cMenuController.addObserver(this::update); //регистрируем слушателя
+        clientMenuController.addObserver(this::update); //регистрируем слушателя
+        cloudMenuController.addObserver(this::update);  //регистрируем слушателя
+        cloudMenuController.hideNewFile();
+        cloudMenuController.hideSearch();
     }
 
     //класс можно адаптировать для поиска или удаления файлов/каталогов
@@ -87,16 +100,13 @@ public class OperatingPanelController implements Observer {
     @Override
     public void update(Observable o, Object arg) {
         //проверяем то, что уведомление пришло от контроллера контекстного меню
-        if(((Observable)cMenuController).equals(o) ){
+        if(((Observable)clientMenuController).equals(o) ){
             switch ((MenuCommand)arg){
                 case NEWFILE:
                     TreeViewUtility.createNewFileAndTreeItem(treeVievClient);
                     break;
                 case NEWCATALOG:
                     TreeViewUtility.createNewCatalogAndTreeItem(treeVievClient);
-                    break;
-                case MOVE:
-                    TreeViewUtility.moveFileAndTreeItem(treeVievClient);
                     break;
                 case COPY:
                     TreeViewUtility.copyFileAndTreeItem(treeVievClient);
@@ -118,6 +128,37 @@ public class OperatingPanelController implements Observer {
                     break;
             }
         }
+        if(((Observable)cloudMenuController).equals(o) ){
+            switch ((MenuCommand)arg){
+                case NEWCATALOG:
+                    TreeViewUtility.createNewCatalogInCloud(treeVievCloud);
+                    break;
+                case COPY:
+                    System.out.println(2);
+                    break;
+                case CUT:
+                    System.out.println(3);
+                    break;
+                case PASTE:
+                    System.out.println(4);
+                    break;
+                case REMANE:
+                    System.out.println(5);
+                    break;
+                case DELETE:
+                    System.out.println(6);
+                    break;
+            }
+        }
+    }
+
+    public void createTreeViewCloud(String struct){
+        if (struct ==null){
+            System.out.println("null");
+        } else {
+            System.out.println(struct);
+        }
+        //дописать метод на тот случай если возвращается не пустая строка со структурой каталогов
     }
 }
 
