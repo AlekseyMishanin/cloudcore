@@ -1,12 +1,18 @@
 package protocol;
 
+import db.AuthService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import utility.Packages;
 
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.RecursiveAction;
 
 /**
  * Класс инкапсулирует часть протокола, отвечающую за загрузку файла на сервер.
@@ -18,6 +24,7 @@ public class ByteToFileServerHandler extends AbstractHandler{
     private PackageBody packageBody;
     private byte[] dataArr;
     private FileOutputStream out;
+    private long lengthFileLocal;
 
     public ByteToFileServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -38,7 +45,12 @@ public class ByteToFileServerHandler extends AbstractHandler{
             ByteBuf buf = ((ByteBuf) msg);
             //System.out.println(7);
             //если в буфере есть данные для чтения
-            if(out == null) {out = new FileOutputStream("serverA/" + packageBody.getNameUser() + "/" + packageBody.getNameFile());}
+            if(out == null) {
+                Path path = Paths.get("ServerCloud/" + packageBody.getNameUser());
+                if(!Files.exists(path)){Files.createDirectory(path);}
+                lengthFileLocal = packageBody.getLenghFile();
+                out = new FileOutputStream("ServerCloud/" + packageBody.getNameUser() + "/" + packageBody.getNameFile());
+            }
             while (buf.isReadable()){
                 //определяем кол-во доступных для чтения байт
                 int j = buf.readableBytes() > 1024 ? 1024 : buf.readableBytes();
@@ -53,10 +65,33 @@ public class ByteToFileServerHandler extends AbstractHandler{
             ReferenceCountUtil.release(msg);
             //если не осталось байт для записи
             if (packageBody.getLenghFile() <= 0) {
+
+                new RecursiveAction(){
+                    @Override
+                    protected void compute() {
+                        if(AuthService.getInstance().insertNewFile(
+                                packageBody.getVariable(),
+                                packageBody.getNameFile(),
+                                lengthFileLocal,
+                                packageBody.getIdClient(),
+                                "ServerCloud/" + packageBody.getNameUser() + "/" + packageBody.getNameFile()
+                        )){
+                            try {
+                                System.out.println("good");
+                                Packages.updateStructure(ctx.channel());
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }.fork();
+                //поспим немного, чтобы дочерний поток получил корректные аргументы на вход
+                Thread.sleep(100);
                 //очищаем пакет
                 packageBody.clear();
                 out.close();
                 out = null;
+                lengthFileLocal = 0;
             }
         } else {
             ctx.fireChannelRead(msg);

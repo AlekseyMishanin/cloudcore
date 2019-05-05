@@ -1,7 +1,9 @@
 package protocol;
 
+import db.AuthService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
@@ -11,9 +13,12 @@ import model.PackageBody;
 import model.ProtocolCommand;
 import utility.Packages;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.RecursiveAction;
 
@@ -41,20 +46,57 @@ public class FileToByteHandler extends AbstractHandler{
             new RecursiveAction(){
                 @Override
                 protected void compute() {
+                    //System.out.println(7);
+                    String catalogClient = packageBody.getVariable();
+                    String pathToFile = packageBody.getNameFile();
+                    Channel channel = ctx.channel();
+                    Path path = Paths.get("ServerCloud/" + packageBody.getNameUser());
+                    ReadableByteChannel inChannel = null;
+                    FileChannel outChannel = null;
+                    System.out.println(6);
                     try {
-                        //вызываем статический метод утилиты для оптавки файла клиенту
-                        Packages.sendFromServerToClient(ctx.channel(), new PackageTransport(packageBody.getNameUser(), Paths.get("serverA/", packageBody.getNameUser() + "/", packageBody.getNameFile())));
-                        //очищаем пакет
-                        packageBody.clear();
+                        if(!Files.exists(path)){ Files.createDirectory(path);}
+                        long size = AuthService.getInstance().selectSizeFile(pathToFile, PackageBody.systemSeparator,packageBody.getIdClient());
+                        System.out.println(size);
+                        if(size == 0) return;
+                        InputStream in = AuthService.getInstance().selectFile(pathToFile, PackageBody.systemSeparator,packageBody.getIdClient());
+                        System.out.println(in == null);
+                        if(in == null) return;
+                        inChannel = Channels.newChannel(in);
+
+                        outChannel = new FileOutputStream(
+                                path.toAbsolutePath().toString() +
+                                        pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator))
+                        ).getChannel();
+                        outChannel.transferFrom(inChannel,0,size);
+                        Packages.sendFromServerToClient(
+                                channel,
+                                catalogClient+pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator)),
+                                        Paths.get(path.toAbsolutePath().toString() +
+                                                pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator))));
+
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
+                    } finally {
+                        try {
+                            outChannel.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            inChannel.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        packageBody.clear();
                     }
                 }
             }.fork();
-            //освобождаем сообщение
-
         } else {
             //пересылаем сообдение следующему ChannelHandler
             ctx.fireChannelRead(msg);

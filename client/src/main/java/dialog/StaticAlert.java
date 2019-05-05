@@ -60,7 +60,19 @@ public class StaticAlert {
 
     public static ButtonBar.ButtonData confirmOperation(){
         try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Вы действительно хотите выполнить удаление?", ButtonType.YES, ButtonType.NO);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.YES, ButtonType.NO);
+            alert.setHeaderText("Вы действительно хотите выполнить удаление?");
+            alert.showAndWait();
+            return alert.getResult().getButtonData();
+        } catch (Exception e){
+            return null;
+        }
+    }
+
+    public static ButtonBar.ButtonData tipOperation(){
+        try {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.OK);
+            alert.setHeaderText("Для выполнения операции необходимо выбрать каталог");
             alert.showAndWait();
             return alert.getResult().getButtonData();
         } catch (Exception e){

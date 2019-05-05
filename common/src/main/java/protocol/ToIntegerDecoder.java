@@ -28,7 +28,11 @@ public class ToIntegerDecoder extends AbstractHandler {
                 (packageBody.getStatus() == PackageBody.Status.READLENGTHUSER ||
                         packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE ||
                         packageBody.getStatus() == PackageBody.Status.READLENGTHSTRUCTURE ||
-                        packageBody.getStatus() == PackageBody.Status.READLENGTHPATHCATALOG)) {
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHPATHCATALOG ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHDELETECATALOG ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHCATALOGFORFILE ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHOLDPATH ||
+                        packageBody.getStatus() == PackageBody.Status.READLENGTHNEWPATH)) {
             //если для чтения доступно менее 4-х байт
             if (buf.readableBytes() < 4) {
                 //прекращаем обарботку
@@ -41,6 +45,7 @@ public class ToIntegerDecoder extends AbstractHandler {
                 packageBody.setStatus(PackageBody.Status.READNAMEUSER);
             }
             if(packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE){
+                System.out.println(5);
                 packageBody.setLenghFileName(buf.readInt());
                 packageBody.setStatus(PackageBody.Status.READNAMEFILE);
             }
@@ -52,7 +57,24 @@ public class ToIntegerDecoder extends AbstractHandler {
                 packageBody.setLengthVariable(buf.readInt());
                 packageBody.setStatus(PackageBody.Status.READPATHNEWCATALOG);
             }
-            
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHDELETECATALOG){
+                packageBody.setLengthVariable(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READNAMEDELETECATALOG);
+            }
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHCATALOGFORFILE){
+                System.out.println(2);
+                packageBody.setLengthVariable(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READNAMECATALOGFORFILE);
+            }
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHOLDPATH){
+                packageBody.setLengthVariable(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READNAMEOLDPATH);
+            }
+            if(packageBody.getStatus() == PackageBody.Status.READLENGTHNEWPATH){
+                packageBody.setLengthPasteCatalog(buf.readInt());
+                packageBody.setStatus(PackageBody.Status.READNAMENEWPATH);
+            }
+
         }
         //пересылаем сообщение следующему ChannelHandler
         ctx.fireChannelRead(msg);

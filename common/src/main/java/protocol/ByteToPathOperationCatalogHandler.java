@@ -5,47 +5,35 @@ import io.netty.channel.ChannelHandlerContext;
 import model.PackageBody;
 import model.ProtocolCommand;
 
-/**
- * Класс инкапсулирует часть протокола, отвечающую за чтение имени пользователя.
- *
- * @author Mishanin Aleksey
- * */
-public class ByteToNameUserHandler extends AbstractHandler {
+public class ByteToPathOperationCatalogHandler extends AbstractHandler {
 
     private PackageBody packageBody;
 
-    public ByteToNameUserHandler(PackageBody packageBody) {
+    public ByteToPathOperationCatalogHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //если пакет содержит нужную команду и статус
-        if((packageBody.getCommand() != ProtocolCommand.FILEERROR ||
-                packageBody.getCommand() != null) &&
-                packageBody.getStatus() == PackageBody.Status.READNAMEUSER) {
+        if((packageBody.getCommand() != ProtocolCommand.COPYCATALOG ||
+                packageBody.getCommand() != ProtocolCommand.CUTCATALOG ||
+                packageBody.getCommand() != ProtocolCommand.RENAMECATALOG ) &&
+                packageBody.getStatus() == PackageBody.Status.READNAMENEWPATH) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
             //если кол-во байт доступных для чтения меньше длины имени файла
-            if (buf.readableBytes() < packageBody.getLenghUserName()) {
+            if (buf.readableBytes() < packageBody.getLengthPasteCatalog()) {
                 //прекращаем обработку
                 return;
             }
             //создаем временный буфер под имя пользователя
-            byte[] data = new byte[packageBody.getLenghUserName()];
+            byte[] data = new byte[packageBody.getLengthPasteCatalog()];
             //читаем имя файла во временный буфер
             buf.readBytes(data);
             //в пакете присваиваем новое имя пользователя
-            packageBody.setNameUser(new String(data));
-            if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION ||
-                    packageBody.getCommand() == ProtocolCommand.REGISTRATION)
-            {
-                packageBody.setStatus(PackageBody.Status.READPASSWORD);
-            } else {
-                //присваиваем статус: чтение длины имени файла
-                //packageBody.setStatus(PackageBody.Status.READLENGTHNAMEFILE);
-                //System.out.println(3);
-            }
+            packageBody.setPasteCatalog(new String(data));
+            packageBody.setStatus(PackageBody.Status.OPERATIONNAMEPATH);
         }
         //отправляем сообщение к следующему ChannelHandler
         ctx.fireChannelRead(msg);

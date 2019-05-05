@@ -23,12 +23,14 @@ public class TreeViewUtility {
 
     private static FileVisionDelete fileVision = new FileVisionDelete();
     private static FileVisionSearch fileSearch = new FileVisionSearch();
-    private static Path bufferForCopyAndCutClient = null;
+    private static Path bufferForCopyAndCut = null;
+    private static Path bufferForCopyAndCutCloud = null;
     private static TreeItem<ExtFile> itemForCut;
     private static EnumOption option = null;
+    private static EnumOption optionCloud = null;
 
     public static <T> String getPathFromTreeItem(@NonNull TreeItem<T> item){
-        if(item.getParent() == null) return "";
+        if(item == null || item.getParent() == null) return "";
         return  (getPathFromTreeItem(item.getParent()).equals("") ? "" : getPathFromTreeItem(item.getParent()) + File.separator) + item.getValue().toString();
     }
 
@@ -63,7 +65,7 @@ public class TreeViewUtility {
     public static void copyFileAndTreeItem(@NonNull TreeView<ExtFile> tree){
         TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
         if(selectedItem != null){
-            bufferForCopyAndCutClient =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
+            bufferForCopyAndCut =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
             option = EnumOption.COPY;
         }
     }
@@ -71,22 +73,43 @@ public class TreeViewUtility {
     public static void cutFileAndTreeItem(@NonNull TreeView<ExtFile> tree){
         TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
         if(selectedItem != null){
-            bufferForCopyAndCutClient =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
+            bufferForCopyAndCut =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
             itemForCut = selectedItem;
             option = EnumOption.CUT;
         }
     }
 
+    private static void copyDirOrFile(final Path src, final Path dst) throws IOException {
+        final File srcFile = src.toFile();
+        final File dstFile = dst.toFile();
+        if (srcFile.exists() && srcFile.isDirectory() && !dstFile.exists()) {
+            dstFile.mkdir();
+            File nextSrcFile;
+            String nextSrcFilename, nextDstFilename;
+            for (String filename : srcFile.list()) {
+                nextSrcFilename = srcFile.getAbsolutePath() + File.separator + filename;
+                nextDstFilename = dstFile.getAbsolutePath() + File.separator + filename;
+                nextSrcFile = new File(nextSrcFilename);
+                if (nextSrcFile.isDirectory()) {
+                    copyDirOrFile(Paths.get(nextSrcFilename), Paths.get(nextDstFilename));
+                } else {
+                    Files.copy(Paths.get(nextSrcFilename),Paths.get(nextDstFilename));
+                }
+            }
+        } else if (srcFile.exists() && !srcFile.isDirectory() && !dstFile.exists()) {
+            Files.copy(src,dst);
+        }
+    }
     //нужно потестить
     public static void pasteFileAndTreeItem(@NonNull TreeView<ExtFile> tree){
         TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
-        if(option == EnumOption.COPY && bufferForCopyAndCutClient !=null && selectedItem != null){
+        if(option == EnumOption.COPY && bufferForCopyAndCut !=null && selectedItem != null){
             TreeItem<ExtFile> parentForNewItemTree = getParentCatalog(selectedItem);
             if(parentForNewItemTree == null) return;
             try {
                 Path copyToPath = Files.isDirectory(Paths.get(getPathFromTreeItem(selectedItem))) ? Paths.get(getPathFromTreeItem(selectedItem)) : Paths.get(getPathFromTreeItem(selectedItem)).getParent();
-                Files.copy(bufferForCopyAndCutClient,copyToPath.resolve(bufferForCopyAndCutClient.getFileName()));
-                String temp = bufferForCopyAndCutClient.getFileName().toString();
+                copyDirOrFile(bufferForCopyAndCut,copyToPath.resolve(bufferForCopyAndCut.getFileName()));
+                String temp = bufferForCopyAndCut.getFileName().toString();
                 Platform.runLater(() -> {
                     TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(temp));     //создаем элемент с новым именем
                     parentForNewItemTree.getChildren().add(newTreeItem);
@@ -95,17 +118,17 @@ public class TreeViewUtility {
             } catch (IOException e) {
                 StaticAlert.showAlertError(e);
             } finally {
-                bufferForCopyAndCutClient = null;
+                bufferForCopyAndCut = null;
                 option = null;
             }
-        } else if(option == EnumOption.CUT && bufferForCopyAndCutClient !=null && selectedItem != null){
+        } else if(option == EnumOption.CUT && bufferForCopyAndCut !=null && selectedItem != null){
             TreeItem<ExtFile> parentForNewItemTree = getParentCatalog(selectedItem);
             if(parentForNewItemTree == null) return;
             try {
                 Path copyToPath = Files.isDirectory(Paths.get(getPathFromTreeItem(selectedItem))) ? Paths.get(getPathFromTreeItem(selectedItem)) : Paths.get(getPathFromTreeItem(selectedItem)).getParent();
-                Files.copy(bufferForCopyAndCutClient,copyToPath.resolve(bufferForCopyAndCutClient.getFileName()));
-                String temp = bufferForCopyAndCutClient.getFileName().toString();
-                Files.walkFileTree(bufferForCopyAndCutClient, fileVision);
+                copyDirOrFile(bufferForCopyAndCut,copyToPath.resolve(bufferForCopyAndCut.getFileName()));
+                String temp = bufferForCopyAndCut.getFileName().toString();
+                Files.walkFileTree(bufferForCopyAndCut, fileVision);
                 Platform.runLater(() -> {
                     TreeItem<ExtFile> newTreeItem = new TreeItem<>(new ExtFile(temp));     //создаем элемент с новым именем
                     parentForNewItemTree.getChildren().add(newTreeItem);
@@ -119,7 +142,7 @@ public class TreeViewUtility {
             } catch (IOException e) {
                 StaticAlert.showAlertError(e);
             } finally {
-                bufferForCopyAndCutClient = null;
+                bufferForCopyAndCut = null;
                 option = null;
                 fileVision.clear();
             }
@@ -211,7 +234,7 @@ public class TreeViewUtility {
         }
     }
 
-    public static void createNewCatalogInCloud(@NonNull TreeView<ExtFile> tree){
+    public static String createNewCatalogInCloud(@NonNull TreeView<ExtFile> tree){
         TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
         if(selectedItem != null){
             Optional<String> res = StaticAlert.getNewName(EnumOption.CREATECATALOG);
@@ -219,10 +242,103 @@ public class TreeViewUtility {
             {
                 String newCatalog = res.get();
                 String parentCatalog = TreeViewUtility.getPathFromTreeItem(selectedItem);
-                String newPath = parentCatalog.isEmpty() ? newCatalog : parentCatalog + File.separator + newCatalog;
-                NettyNetwork.getInstance().requestCteareNewCatalog(newPath, newCatalog);
+                return parentCatalog.isEmpty() ? newCatalog : parentCatalog + File.separator + newCatalog;
             }
+        }
+        return null;
+    }
+
+    public static void updateStructureTreeViewCloud(@NonNull TreeView<ExtFile> tree, String newStructure){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                TreeItem<ExtFile> root = tree.getRoot();
+                if(newStructure!=null){
+                    root.getChildren().removeAll(root.getChildren());
+                    String[] pathArr = newStructure.split("\n");
+
+                    for (int i = 0; i < pathArr.length; i++) {
+
+                        String[] elementArr = pathArr[i].split("/");
+                        TreeItem<ExtFile> previousNode = root;
+                        TreeItem<ExtFile> currentNode = null;
+                        for (int j = 0; j < elementArr.length; j++) {
+                            currentNode = findItem(previousNode, elementArr[j]);
+                            if(currentNode != null) {previousNode = currentNode;}
+                            else {
+                                currentNode = new TreeItem<>(new ExtFile(elementArr[j]));
+                                previousNode.getChildren().add(currentNode);
+                                previousNode = currentNode;
+                            }
+                        }
+                    }
+                } else {
+                    //если у дерева есть корень и потомки
+                    if(root != null || !root.getChildren().isEmpty()){
+                        //удаляем потомков
+                        root.getChildren().removeAll(root.getChildren());
+                    }
+                }
+            }
+        });
+    }
+
+    private static TreeItem<ExtFile> findItem(TreeItem<ExtFile> parent, String value){
+        if(parent.getChildren().isEmpty()) return null;
+        for (TreeItem<ExtFile> item:
+             parent.getChildren()) {
+            if (item.getValue().getName().equals(value)) return item;
+        }
+        return null;
+    }
+
+    public static String deleteDirectoryInCloud(@NonNull TreeView<ExtFile> tree){
+        TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
+        if(selectedItem != null){
+            if(StaticAlert.confirmOperation()== ButtonBar.ButtonData.NO) return null;
+            return getPathFromTreeItem(selectedItem);
+        }
+        return null;
+    }
+
+    public static void copyFileCloud(@NonNull TreeView<ExtFile> tree){
+        TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
+        if(selectedItem != null){
+            bufferForCopyAndCutCloud =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
+            optionCloud = EnumOption.COPY;
         }
     }
 
+    public static void cutFileCloud(@NonNull TreeView<ExtFile> tree){
+        TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
+        if(selectedItem != null){
+            bufferForCopyAndCutCloud =  Paths.get(TreeViewUtility.getPathFromTreeItem(selectedItem));                                //получаем полный путь к выбранному элементу
+            optionCloud = EnumOption.CUT;
+        }
+    }
+    public static void pasteFileCloud(@NonNull TreeView<ExtFile> tree){
+        TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
+        if(selectedItem != null){
+            String newCatalog =  TreeViewUtility.getPathFromTreeItem(selectedItem);                                //получаем полный путь к выбранному элементу
+            if(optionCloud == EnumOption.COPY){
+                NettyNetwork.getInstance().requestCopyCatalog(bufferForCopyAndCutCloud,newCatalog);
+            }
+            if(optionCloud == EnumOption.CUT){
+                NettyNetwork.getInstance().requestCutCatalog(bufferForCopyAndCutCloud,newCatalog);
+            }
+            optionCloud = null;
+        }
+    }
+
+    public static void renameFileCloud(@NonNull TreeView<ExtFile> tree){
+        TreeItem<ExtFile> selectedItem = tree.getSelectionModel().getSelectedItem();           //ссылка на выбранный элемент дерева
+        if(selectedItem != null){
+            Optional<String> res = StaticAlert.getNewName(EnumOption.RENAME);
+            if(res.isPresent()) {
+                String newName = res.get();
+                String oldName =  TreeViewUtility.getPathFromTreeItem(selectedItem);
+                NettyNetwork.getInstance().requestRenameCatalog(Paths.get(oldName),newName);
+            }
+        }
+    }
 }

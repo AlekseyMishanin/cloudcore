@@ -39,11 +39,27 @@ public class CommandHandler extends AbstractHandler {
                     packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURECATALOG);
                     break;
                 case STRUCTURERESPONSE:
-                    //System.out.println(1);
                     packageBody.setStatus(PackageBody.Status.READLENGTHSTRUCTURE);
                     break;
                 case NEWCATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHNEWCTALOG);
+                    packageBody.setStatus(PackageBody.Status.READLENGTHPATHCATALOG);
+                    break;
+                case UPDATESTRUCTURE:
+                    packageBody.setStatus(PackageBody.Status.CHANGEDSTRUCTURE);
+                    break;
+                case DELETECATALOG:
+                    packageBody.setStatus(PackageBody.Status.READLENGTHDELETECATALOG);
+                    break;
+                case FILE:
+                case FILERESPONSE:
+                case FILEREQUEST:
+                    System.out.println(1);
+                    packageBody.setStatus(PackageBody.Status.READLENGTHCATALOGFORFILE);
+                    break;
+                case COPYCATALOG:
+                case CUTCATALOG:
+                case RENAMECATALOG:
+                    packageBody.setStatus(PackageBody.Status.READLENGTHOLDPATH);
                     break;
                 default:
                     packageBody.setStatus(PackageBody.Status.READLENGTHUSER);

@@ -11,6 +11,7 @@ import model.MenuCommand;
 import model.User;
 import net.NettyNetwork;
 import utility.ListController;
+import utility.LoadFiles;
 import utility.TreeViewUtility;
 
 import java.io.File;
@@ -33,12 +34,15 @@ public class OperatingPanelController implements Observer {
 
         //присваиваем списку контроллеров ссылку на текущий контроллер
         ListController.getInstance().setOperatingPanelController(this);
-        //запрашиваем у сервера структуру каталогов/файлов
-        NettyNetwork.getInstance().requestDirectoryStructure();
+
 
         File[] roots = File.listRoots();
         treeVievClient.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
         treeVievCloud.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
+
+        //запрашиваем у сервера структуру каталогов/файлов
+        NettyNetwork.getInstance().requestDirectoryStructure();
+
         for (int i = 0; i < roots.length; i++) {
             TreeItem<ExtFile> rootChild = new TreeItem<>(new ExtFile(roots[i].getPath()));
             treeVievClient.getRoot().getChildren().addAll(rootChild);
@@ -81,22 +85,6 @@ public class OperatingPanelController implements Observer {
         cloudMenuController.hideSearch();
     }
 
-    //класс можно адаптировать для поиска или удаления файлов/каталогов
-
-
-    //экспериментальный класс, загружает рекурсивно в приложение файловую структуру локального компьютера. Не производительный метод
-//    private void createItemForTree(TreeItem<String> parent, File file){
-//        TreeItem<String> child = new TreeItem<>(file.toPath().getFileName().toString());
-//        parent.getChildren().addAll(child);
-//        if(file.isDirectory()){
-//            if(file.list()==null) return;
-//            for (String str:
-//                    file.list()) {
-//                createItemForTree(child, new File(file.getAbsolutePath() + File.separator + str));
-//            }
-//        }
-//    }
-
     @Override
     public void update(Observable o, Object arg) {
         //проверяем то, что уведомление пришло от контроллера контекстного меню
@@ -126,39 +114,56 @@ public class OperatingPanelController implements Observer {
                 case SEARCH:
                     TreeViewUtility.searchObjectAndTreeItem(treeVievClient);
                     break;
+                case UPLOAD:
+                    LoadFiles.getInstance().uploadFileClient(rootNode.getScene().getWindow());
+                    break;
+                case DOWNLOAD:
+                    LoadFiles.getInstance().downloadFileClient(rootNode.getScene().getWindow());
+                    break;
             }
         }
         if(((Observable)cloudMenuController).equals(o) ){
             switch ((MenuCommand)arg){
                 case NEWCATALOG:
-                    TreeViewUtility.createNewCatalogInCloud(treeVievCloud);
+                    String newPath = TreeViewUtility.createNewCatalogInCloud(treeVievCloud);
+                    if(newPath!=null){
+                        NettyNetwork.getInstance().requestCteareNewCatalog(newPath);
+                    }
                     break;
                 case COPY:
-                    System.out.println(2);
+                    TreeViewUtility.copyFileCloud(treeVievCloud);
                     break;
                 case CUT:
-                    System.out.println(3);
+                    TreeViewUtility.cutFileCloud(treeVievCloud);
                     break;
                 case PASTE:
-                    System.out.println(4);
+                    TreeViewUtility.pasteFileCloud(treeVievCloud);
                     break;
                 case REMANE:
-                    System.out.println(5);
+                    TreeViewUtility.renameFileCloud(treeVievCloud);
                     break;
                 case DELETE:
-                    System.out.println(6);
+                    String pathToCatalog = TreeViewUtility.deleteDirectoryInCloud(treeVievCloud);
+                    if(pathToCatalog != null){
+                        NettyNetwork.getInstance().requestDeleteCatalog(pathToCatalog);
+                    }
+                    break;
+                case UPLOAD:
+                    LoadFiles.getInstance().uploadFileServer(treeVievCloud);
+                    break;
+                case DOWNLOAD:
+                    try {
+                        LoadFiles.getInstance().downloadFileServer(treeVievCloud);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     break;
             }
         }
     }
 
-    public void createTreeViewCloud(String struct){
-        if (struct ==null){
-            System.out.println("null");
-        } else {
-            System.out.println(struct);
-        }
-        //дописать метод на тот случай если возвращается не пустая строка со структурой каталогов
+    public void updateTreeViewCloud(String struct){
+        TreeViewUtility.updateStructureTreeViewCloud(treeVievCloud,struct);
     }
 }
 

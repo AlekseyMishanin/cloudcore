@@ -32,6 +32,7 @@ public class ToLongDecoder extends AbstractHandler {
                 return;
             }
             //записываем long в поле длины файла
+            System.out.println(6);
             packageBody.setLenghFile(buf.readLong());
             //присваиваем пакету статус: чтение файла
             packageBody.setStatus(PackageBody.Status.READFILE);

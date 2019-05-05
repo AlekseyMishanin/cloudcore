@@ -46,6 +46,7 @@ public class ByteToNameFileHandler extends AbstractHandler {
             //если команда в пакете: запрос файла на сервере для скачивания
             if(packageBody.getCommand() == ProtocolCommand.FILEREQUEST){
                 //присваиваем статус: скачать файл
+                System.out.println(5);
                 packageBody.setStatus(PackageBody.Status.WRITEFILE);
             }
             //System.out.println(5);

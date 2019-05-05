@@ -10,6 +10,7 @@ import model.PackageTransport;
 import model.PackageBody;
 import net.protocol.BuildStructureCatalogHandler;
 import net.protocol.ByteToBoolResponseClientHandler;
+import net.protocol.UpadateStructureHandler;
 import protocol.*;
 import utility.Packages;
 
@@ -54,8 +55,10 @@ public class NettyNetwork {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline()
                                     .addLast("command",new CommandHandler(packageBody))
+                                    .addLast("updateStructure", new UpadateStructureHandler(packageBody))
                                     .addLast("verifyAuthRegResponse", new ByteToBoolResponseClientHandler(packageBody))
                                     .addLast("lengthUserNameOrOuther",new ToIntegerDecoder(packageBody))
+                                    .addLast("getVriable",new ByteToNameVariableHandler(packageBody))
                                     .addLast("userName",new ByteToNameUserHandler(packageBody))
                                     .addLast("getListCatalog", new StructureCatalogClientHandler(packageBody))
                                     .addLast("buildStructureCloud", new BuildStructureCatalogHandler(packageBody))
@@ -85,18 +88,15 @@ public class NettyNetwork {
     /**
      * Метод загрузки файла с сервера на компьютер клиента
      *
-     * @param   name
-     *          логин клиента
-     *
-     * @param   path
+     * @param   pathToDownload
      *          путь к файлу на стороне сервера
      * */
-    public void loadData(String name, Path path){
+    public void loadData(Path pathToDownload, String pathToload){
         try {
             //проверяем наступило ли событие успешного соединения с сервером
             countDownLatch.await();
             //вызываем статический метод загрузки файла
-            Packages.loadFromServerToClient(currentChannel, new PackageTransport("test",path));
+            Packages.loadFromServerToClient(currentChannel, pathToDownload, pathToload);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -105,18 +105,15 @@ public class NettyNetwork {
     /**
      * Метод загрузки файла на сервер с компьютера клиента
      *
-     * @param   name
-     *          логин клиента
-     *
      * @param   path
      *          путь к файлу на стороне клиента
      * */
-    public void sendData(String name, Path path) throws InterruptedException {
+    public void sendData(String cloudCatalog, Path path) throws InterruptedException {
         try {
             //проверяем наступило ли событие успешного соединения с сервером
             countDownLatch.await();
             //вызываем статический метод для отправки файла
-            Packages.sendFromClienToServer(currentChannel, new PackageTransport("test",path));
+            Packages.sendFromClienToServer(currentChannel, cloudCatalog ,path);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
@@ -145,6 +142,38 @@ public class NettyNetwork {
     public void requestCteareNewCatalog(String path){
         try {
             Packages.requestCteareNewCatalog(currentChannel, path);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void requestDeleteCatalog(String catalog){
+        try {
+            Packages.requestDeleteCatalog(currentChannel, catalog);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void requestCopyCatalog(Path oldCatalog, String newCatalog){
+        try {
+            Packages.requestCopyCatalog(currentChannel, oldCatalog, newCatalog);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void requestCutCatalog(Path oldCatalog, String newCatalog){
+        try {
+            Packages.requestCutCatalog(currentChannel, oldCatalog, newCatalog);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void requestRenameCatalog(Path oldCatalog, String newCatalog){
+        try {
+            Packages.requestRenameCatalog(currentChannel, oldCatalog, newCatalog);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

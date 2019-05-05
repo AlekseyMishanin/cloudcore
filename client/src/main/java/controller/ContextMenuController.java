@@ -45,6 +45,12 @@ public class ContextMenuController extends Observable {
             case "search":
                 notifyObservers(MenuCommand.SEARCH);
                 break;
+            case "upload":
+                notifyObservers(MenuCommand.UPLOAD);
+                break;
+            case "download":
+                notifyObservers(MenuCommand.DOWNLOAD);
+                break;
         }
     }
 

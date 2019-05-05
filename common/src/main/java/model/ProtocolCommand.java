@@ -17,7 +17,12 @@ public enum ProtocolCommand {
     STRUCTUREREQUEST((byte)9),  //клиент запрашивает структуру каталогов/файлов
     DENIED((byte)10),           //ответ сервера (отказано в доступе)
     STRUCTURERESPONSE((byte)11),    //положительный ответ сервера на запрос структуры каталогов/файлов
-    NEWCATALOG((byte)12);           //запрос на создание нового каталога
+    NEWCATALOG((byte)12),           //запрос на создание нового каталога
+    UPDATESTRUCTURE((byte)13),
+    DELETECATALOG((byte)14),
+    COPYCATALOG((byte)15),
+    CUTCATALOG((byte)16),
+    RENAMECATALOG((byte)17);
 
     ProtocolCommand(byte i){
         data = i;

@@ -37,4 +37,11 @@ public class Main extends Application {
 //            }
 //        }
 //    }
+
+//    public static void main(String[] args) {
+//        String str = "dir1/dir2/dir3/dir4/file";
+//
+//        System.out.println(str.substring(str.lastIndexOf("/")+1));
+//        System.out.println(str.replace("/","\\"));
+//    }
 }

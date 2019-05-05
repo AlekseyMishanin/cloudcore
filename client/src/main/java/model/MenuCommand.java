@@ -9,5 +9,7 @@ public enum MenuCommand {
     SEARCH,
     COPY,
     CUT,
-    PASTE
+    PASTE,
+    UPLOAD,
+    DOWNLOAD
 }

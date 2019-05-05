@@ -26,7 +26,7 @@ public class BuildStructureCatalogHandler extends AbstractHandler {
             //если кол-во байт доступных для чтения меньше длины имени файла
             System.out.println(4);
             //нужно протестировать
-            ListController.getInstance().getOperatingPanelController().createTreeViewCloud(packageBody.getStructureCatalog());
+            ListController.getInstance().getOperatingPanelController().updateTreeViewCloud(packageBody.getStructureCatalog());
 
             ReferenceCountUtil.release(msg);
             //очищаем пакет

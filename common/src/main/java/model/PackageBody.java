@@ -25,9 +25,21 @@ public class PackageBody {
         BUILDSTRUCTURE,         //строим структуру каталогов на стороне клиента
         READLENGTHPATHCATALOG,    //читаем длину нового каталога
         READPATHNEWCATALOG,     //читаем путь нового каталога
-      //  READLENGTHNAMECATALOG,
-        CREATENEWCATALOG;
+        CREATENEWCATALOG,
+        CHANGEDSTRUCTURE,
+        READLENGTHDELETECATALOG,
+        READNAMEDELETECATALOG,
+        DELETECATALOG,
+        READLENGTHCATALOGFORFILE,
+        READNAMECATALOGFORFILE,
+        READLENGTHOLDPATH,
+        READLENGTHNEWPATH,
+        READNAMEOLDPATH,
+        READNAMENEWPATH,
+        OPERATIONNAMEPATH;
     }
+
+    static public final String systemSeparator = "/";
 
     private ProtocolCommand command;    //команда протокола
     private Status status;              //состояние протокола
@@ -35,7 +47,6 @@ public class PackageBody {
     private int lenghFileName;          //длина имени файла
     private long lenghFile;             //длина файла
     private int lengthStructure;        //длина структуры каталогов
-  //  private int lengthNameCatalog;
     private String structureCatalog;    //структура каталогов
     private int lengthVariable;
     private String variable;
@@ -43,17 +54,8 @@ public class PackageBody {
     private String nameFile;            //имя файла
     private int idClient;
     private boolean isCurrentUser;
-
-    @Override
-    public String toString() {
-        return command.toString() + "\n" +
-                status.toString() + "\n" +
-                lenghUserName + "\n" +
-                lenghFileName + "\n" +
-                lenghFile + "\n" +
-                nameUser + "\n" +
-                nameFile + "\n";
-    }
+    private String pasteCatalog;
+    private int lengthPasteCatalog;
 
     public PackageBody() {
         this.command = null;
@@ -69,7 +71,6 @@ public class PackageBody {
     public void setCommand(ProtocolCommand command) {
         this.command = command;
     }
-
 
     public Status getStatus() {
         return status;
@@ -151,9 +152,25 @@ public class PackageBody {
 
     public void setVariable(String variable) { this.variable = variable; }
 
-   // public int getLengthNameCatalog() { return lengthNameCatalog; }
+    public static String getSystemSeparator() {
+        return systemSeparator;
+    }
 
-  //  public void setLengthNameCatalog(int lengthNameCatalog) { this.lengthNameCatalog = lengthNameCatalog; }
+    public String getPasteCatalog() {
+        return pasteCatalog;
+    }
+
+    public void setPasteCatalog(String pasteCatalog) {
+        this.pasteCatalog = pasteCatalog;
+    }
+
+    public int getLengthPasteCatalog() {
+        return lengthPasteCatalog;
+    }
+
+    public void setLengthPasteCatalog(int lengthPasteCatalog) {
+        this.lengthPasteCatalog = lengthPasteCatalog;
+    }
 
     /**
      * Метод очищает основные поля класса.
@@ -166,11 +183,24 @@ public class PackageBody {
         command = null;
         status = Status.NONE;
         lenghFile = 0;
-        lenghFileName = 0;
-        lengthStructure = 0;
+        lengthPasteCatalog =
+        lenghFileName =
+        lengthStructure =
         lengthVariable = 0;
-        nameFile = null;
-        structureCatalog = null;
+        pasteCatalog =
+        nameFile =
+        structureCatalog =
         variable = null;
+    }
+
+    @Override
+    public String toString() {
+        return command.toString() + "\n" +
+                status.toString() + "\n" +
+                lenghUserName + "\n" +
+                lenghFileName + "\n" +
+                lenghFile + "\n" +
+                nameUser + "\n" +
+                nameFile + "\n";
     }
 }

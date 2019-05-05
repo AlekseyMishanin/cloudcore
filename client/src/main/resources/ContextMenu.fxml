@@ -6,6 +6,10 @@
             xmlns:fx="http://javafx.com/fxml"
              fx:controller="controller.ContextMenuController">
     <items>
+        <Menu text="File">
+            <MenuItem fx:id="upload" text="Upload" onAction="#getMenuCommand"/>
+            <MenuItem fx:id="download" text="Download" onAction="#getMenuCommand"/>
+        </Menu>
         <Menu text="New">
             <MenuItem fx:id="newFile" text="File" onAction="#getMenuCommand"/>
             <MenuItem fx:id="newCatalog" text="Catalog" onAction="#getMenuCommand"/>

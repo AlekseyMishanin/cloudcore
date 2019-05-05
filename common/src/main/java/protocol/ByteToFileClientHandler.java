@@ -38,7 +38,9 @@ public class ByteToFileClientHandler extends AbstractHandler {
             ByteBuf buf = ((ByteBuf) msg);
             //System.out.println(7);
             //если в буфере есть данные для чтения
-            if(out == null) {out = new FileOutputStream("clientA/" + packageBody.getNameFile());}
+            if(out == null) {
+                out = new FileOutputStream(packageBody.getVariable());
+            }
             while (buf.isReadable()){
                 //определяем кол-во доступных для чтения байт
                 int j = buf.readableBytes() > 1024 ? 1024 : buf.readableBytes();
