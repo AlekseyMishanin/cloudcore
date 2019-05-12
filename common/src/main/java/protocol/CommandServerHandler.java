@@ -3,22 +3,19 @@ package protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
 import protocol.attribute.Client;
+import utility.Packages;
 
 import java.util.HashMap;
 
-/**
- * Класс инкапсулирует часть протокола, отвечающую за чтение команды.
- *
- * @author Mishanin Aleksey
- * */
-public class CommandHandler extends AbstractHandler {
+public class CommandServerHandler extends AbstractHandler {
 
     private PackageBody packageBody;
 
-    public CommandHandler(PackageBody packageBody) {
+    public CommandServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
     }
 
@@ -36,40 +33,37 @@ public class CommandHandler extends AbstractHandler {
             packageBody.setCommand(ProtocolCommand.getCommand(firstByte));
             //на основании значения ProtocolCommand определяем статус протокола
             switch (ProtocolCommand.getCommand(firstByte)){
-                case AUTHRESPONSE:
-                case REGRESPONSE:
-                    packageBody.setStatus(PackageBody.Status.READBOOLRESPONSE);
-                    break;
-                case STRUCTUREREQUEST:
-                    packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURECATALOG);
-                    break;
-                case STRUCTURERESPONSE:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHSTRUCTURE);
-                    break;
-                case NEWCATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHPATHCATALOG);
-                    break;
-                case UPDATESTRUCTURE:
-                    packageBody.setStatus(PackageBody.Status.CHANGEDSTRUCTURE);
-                    break;
-                case DELETECATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHDELETECATALOG);
-                    break;
-                case FILE:
-                case FILERESPONSE:
-                case FILEREQUEST:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHCATALOGFORFILE);
-                    break;
-                case COPYCATALOG:
-                case CUTCATALOG:
-                case RENAMECATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHOLDPATH);
-                    break;
                 case AUTHORIZATION:
                 case REGISTRATION:
                     packageBody.setStatus(PackageBody.Status.READLENGTHUSER);
                     break;
                 default:
+                    if(checkIdUser(ctx)){
+                        switch (ProtocolCommand.getCommand(firstByte)){
+                            case STRUCTUREREQUEST:
+                                packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURECATALOG);
+                                break;
+                            case NEWCATALOG:
+                                packageBody.setStatus(PackageBody.Status.READLENGTHPATHCATALOG);
+                                break;
+                            case DELETECATALOG:
+                                packageBody.setStatus(PackageBody.Status.READLENGTHDELETECATALOG);
+                                break;
+                            case FILE:
+                            case FILEREQUEST:
+                                packageBody.setStatus(PackageBody.Status.READLENGTHCATALOGFORFILE);
+                                break;
+                            case COPYCATALOG:
+                            case CUTCATALOG:
+                            case RENAMECATALOG:
+                                packageBody.setStatus(PackageBody.Status.READLENGTHOLDPATH);
+                                break;
+                        }
+                    } else {
+                        Packages.deniedInAction(ctx.channel());
+                        ReferenceCountUtil.release(msg);
+                        packageBody.clear();
+                    }
                     break;
             }
         }

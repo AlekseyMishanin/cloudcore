@@ -24,7 +24,6 @@ public class BuildStructureCatalogHandler extends AbstractHandler {
         if(packageBody.getCommand() == ProtocolCommand.STRUCTURERESPONSE &&
                 packageBody.getStatus() == PackageBody.Status.BUILDSTRUCTURE) {
             //если кол-во байт доступных для чтения меньше длины имени файла
-            System.out.println(4);
             //нужно протестировать
             ListController.getInstance().getOperatingPanelController().updateTreeViewCloud(packageBody.getStructureCatalog());
 

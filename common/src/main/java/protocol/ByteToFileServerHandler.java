@@ -1,17 +1,21 @@
 package protocol;
 
-import db.AuthService;
+import db.SqlService;
+import db.arhive.AuthService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
 import utility.Packages;
 
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.concurrent.RecursiveAction;
 
 /**
@@ -46,10 +50,13 @@ public class ByteToFileServerHandler extends AbstractHandler{
             //System.out.println(7);
             //если в буфере есть данные для чтения
             if(out == null) {
-                Path path = Paths.get("ServerCloud/" + packageBody.getNameUser());
+                Path path = Paths.get("ServerCloud/" +
+                        ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN));
                 if(!Files.exists(path)){Files.createDirectory(path);}
                 lengthFileLocal = packageBody.getLenghFile();
-                out = new FileOutputStream("ServerCloud/" + packageBody.getNameUser() + "/" + packageBody.getNameFile());
+                out = new FileOutputStream("ServerCloud/" +
+                        ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN) +
+                        "/" + packageBody.getNameFile());
             }
             while (buf.isReadable()){
                 //определяем кол-во доступных для чтения байт
@@ -69,15 +76,16 @@ public class ByteToFileServerHandler extends AbstractHandler{
                 new RecursiveAction(){
                     @Override
                     protected void compute() {
-                        if(AuthService.getInstance().insertNewFile(
+                        if(SqlService.getInstance().insertNewFile(
                                 packageBody.getVariable(),
                                 packageBody.getNameFile(),
                                 lengthFileLocal,
-                                packageBody.getIdClient(),
-                                "ServerCloud/" + packageBody.getNameUser() + "/" + packageBody.getNameFile()
+                                Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID)),
+                                "ServerCloud/" +
+                                        ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN) +
+                                        "/" + packageBody.getNameFile()
                         )){
                             try {
-                                System.out.println("good");
                                 Packages.updateStructure(ctx.channel());
                             } catch (InterruptedException e) {
                                 e.printStackTrace();

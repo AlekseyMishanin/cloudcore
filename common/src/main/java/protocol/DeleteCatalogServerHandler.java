@@ -1,11 +1,15 @@
 package protocol;
 
-import db.AuthService;
+import db.SqlService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
 import utility.Packages;
+
+import java.util.HashMap;
 
 public class DeleteCatalogServerHandler extends AbstractHandler{
 
@@ -20,7 +24,8 @@ public class DeleteCatalogServerHandler extends AbstractHandler{
         if(packageBody.getCommand() == ProtocolCommand.DELETECATALOG &&
                 packageBody.getStatus() == PackageBody.Status.DELETECATALOG) {
 
-            if(AuthService.getInstance().deleteCatalog(packageBody.getVariable(), packageBody.getIdClient())){
+            if(SqlService.getInstance().deleteCatalog(packageBody.getVariable(),
+                    Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID)))){
                 Packages.updateStructure(ctx.channel());
             }
             ReferenceCountUtil.release(msg);

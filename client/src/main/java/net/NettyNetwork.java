@@ -10,7 +10,9 @@ import model.PackageTransport;
 import model.PackageBody;
 import net.protocol.BuildStructureCatalogHandler;
 import net.protocol.ByteToBoolResponseClientHandler;
+import net.protocol.CommandClientHandler;
 import net.protocol.UpadateStructureHandler;
+import org.apache.log4j.Logger;
 import protocol.*;
 import utility.Packages;
 
@@ -21,7 +23,9 @@ import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 
 public class NettyNetwork {
+
     private static NettyNetwork ourInstance = new NettyNetwork();
+    private static final Logger logger = Logger.getLogger(NettyNetwork.class);
 
     public static NettyNetwork getInstance() {
         return ourInstance;
@@ -54,7 +58,7 @@ public class NettyNetwork {
                     clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline()
-                                    .addLast("command",new CommandHandler(packageBody))
+                                    .addLast("command",new CommandClientHandler(packageBody))
                                     .addLast("updateStructure", new UpadateStructureHandler(packageBody))
                                     .addLast("verifyAuthRegResponse", new ByteToBoolResponseClientHandler(packageBody))
                                     .addLast("lengthUserNameOrOuther",new ToIntegerDecoder(packageBody))
@@ -74,15 +78,21 @@ public class NettyNetwork {
                     channelFuture.channel().closeFuture().sync();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    logger.error(e.getMessage());
                 } finally {
                     try {
                         group.shutdownGracefully().sync();
                     } catch (InterruptedException e) {
+                        logger.error(e.getMessage());
                         e.printStackTrace();
                     }
                 }
             }
         }).start();
+    }
+
+    public void close(){
+        if(currentChannel!=null) currentChannel.close();
     }
 
     /**
@@ -98,6 +108,7 @@ public class NettyNetwork {
             //вызываем статический метод загрузки файла
             Packages.loadFromServerToClient(currentChannel, pathToDownload, pathToload);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -115,10 +126,13 @@ public class NettyNetwork {
             //вызываем статический метод для отправки файла
             Packages.sendFromClienToServer(currentChannel, cloudCatalog ,path);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         } catch (FileNotFoundException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -135,6 +149,7 @@ public class NettyNetwork {
         try {
             Packages.requestDirectoryStructure(currentChannel);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -143,6 +158,7 @@ public class NettyNetwork {
         try {
             Packages.requestCteareNewCatalog(currentChannel, path);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -151,6 +167,7 @@ public class NettyNetwork {
         try {
             Packages.requestDeleteCatalog(currentChannel, catalog);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -159,6 +176,7 @@ public class NettyNetwork {
         try {
             Packages.requestCopyCatalog(currentChannel, oldCatalog, newCatalog);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -167,6 +185,7 @@ public class NettyNetwork {
         try {
             Packages.requestCutCatalog(currentChannel, oldCatalog, newCatalog);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -175,6 +194,7 @@ public class NettyNetwork {
         try {
             Packages.requestRenameCatalog(currentChannel, oldCatalog, newCatalog);
         } catch (InterruptedException e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }

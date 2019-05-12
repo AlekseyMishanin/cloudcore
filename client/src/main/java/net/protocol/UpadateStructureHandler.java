@@ -20,7 +20,6 @@ public class UpadateStructureHandler extends AbstractHandler {
         if(packageBody.getCommand() == ProtocolCommand.UPDATESTRUCTURE &&
                 packageBody.getStatus() == PackageBody.Status.CHANGEDSTRUCTURE) {
 
-            System.out.println("structure is changed");
             Packages.requestDirectoryStructure(ctx.channel());
             ReferenceCountUtil.release(msg);
             packageBody.clear();

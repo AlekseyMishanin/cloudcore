@@ -1,4 +1,4 @@
-package db;
+package db.arhive;
 
 //базовый класс модуля доступа к БД
 
@@ -7,13 +7,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
-public abstract class DB_base {
+public abstract class DataBase {
 
     protected String driver = null;         //драйвер
     protected String url = null;            //строка подключения
     protected Properties properties = null; //свойства подключения
 
-    public DB_base(String driver){
+    public DataBase(String driver){
         this.driver=driver;
     }
 

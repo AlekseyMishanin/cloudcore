@@ -1,12 +1,18 @@
 package protocol;
 
-import db.AuthService;
+import db.SqlService;
+import db.arhive.AuthService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
 import utility.Packages;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ByteToPasswordServerHandler extends AbstractHandler {
 
@@ -36,15 +42,13 @@ public class ByteToPasswordServerHandler extends AbstractHandler {
             if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION){
 //                System.out.println("auth");
                 //отпралвяем в БД sql-запрос на получение ID пользователя
-                int ID = AuthService.getInstance().verifyLoginAndPass(packageBody.getNameUser(),pass);
+                int ID = AuthService.getInstance().verifyLoginAndPass(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN),pass);
                 //присваиваем булевой переменной true если пользователь найден в БД, иначе false
                 boolean bool = ID == -1 ? false : true;
                 //если пользователь существует в БД
                 if(bool){
-                    //записываем ID пользователя
-                    packageBody.setIdClient(ID);
-                    //присваиваем признак того, что пользователь авторизован
-                    packageBody.setCurrentUser(true);
+                    HashMap<Client,String> idValue = ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get();
+                    idValue.put(Client.ID,Integer.toString(ID));
                 }
                 //отправляем ответ клиенту
                 Packages.sendAuthorizationResponse(ctx.channel(),bool);
@@ -53,7 +57,7 @@ public class ByteToPasswordServerHandler extends AbstractHandler {
             if(packageBody.getCommand() == ProtocolCommand.REGISTRATION){
 //                System.out.println("reg");
                 //отправляем sql-запрос на добавление записи в БД
-                boolean bool = AuthService.getInstance().accountRegistration(packageBody.getNameUser(),pass);
+                boolean bool = SqlService.getInstance().accountRegistration(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN),pass);
                 //отправляем ответ клиенту
                 Packages.sendRegistrationResponse(ctx.channel(),bool);
             }

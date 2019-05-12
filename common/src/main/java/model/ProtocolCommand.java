@@ -18,11 +18,11 @@ public enum ProtocolCommand {
     DENIED((byte)10),           //ответ сервера (отказано в доступе)
     STRUCTURERESPONSE((byte)11),    //положительный ответ сервера на запрос структуры каталогов/файлов
     NEWCATALOG((byte)12),           //запрос на создание нового каталога
-    UPDATESTRUCTURE((byte)13),
-    DELETECATALOG((byte)14),
-    COPYCATALOG((byte)15),
-    CUTCATALOG((byte)16),
-    RENAMECATALOG((byte)17);
+    UPDATESTRUCTURE((byte)13),      //сообщение о том, что структура каталогов обновилась
+    DELETECATALOG((byte)14),        //клиент отправил запрос на удаление каталога/файла
+    COPYCATALOG((byte)15),          //клиент отправил запрос на копирование каталога/файла
+    CUTCATALOG((byte)16),           //клиент отправил запрос вырезать каталог/файл
+    RENAMECATALOG((byte)17);        //клиент отрпавил запрос на переименование каталога/файла
 
     ProtocolCommand(byte i){
         data = i;

@@ -1,6 +1,6 @@
 package server;
 
-import db.AuthService;
+import db.arhive.AuthService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -9,16 +9,23 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.AttributeKey;
 import model.PackageBody;
 import protocol.*;
+import protocol.attribute.Client;
+import protocol.attribute.PoolConstantName;
 
-public class ServerNetty {
+import java.util.HashMap;
+import java.util.Map;
+
+public class ServerNetty implements PoolConstantName {
 
     public void run() throws Exception{
         AuthService.getInstance().start();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
+            final AttributeKey<Map<Client,String>> id = AttributeKey.newInstance(CLIENTCONFIG);
             ServerBootstrap startSetting = new ServerBootstrap();
             startSetting.group(mainGroup,workerGroup)
                     .channel(NioServerSocketChannel.class)
@@ -27,7 +34,7 @@ public class ServerNetty {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             PackageBody packageBody = new PackageBody();
                             socketChannel.pipeline()
-                                    .addLast("command",new CommandHandler(packageBody))
+                                    .addLast("command",new CommandServerHandler(packageBody))
                                     .addLast("getListCatalog",new StructureCatalogServerHandler(packageBody))
                                     .addLast("lengthFirst",new ToIntegerDecoder(packageBody))
                                     .addLast("userName",new ByteToNameUserHandler(packageBody))
@@ -45,6 +52,7 @@ public class ServerNetty {
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
+            startSetting.childAttr(id, new HashMap<Client,String>());
             ChannelFuture future = startSetting.bind(8189).sync();
             future.channel().closeFuture().sync();
         } finally {

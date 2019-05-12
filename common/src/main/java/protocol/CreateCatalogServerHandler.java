@@ -1,11 +1,15 @@
 package protocol;
 
-import db.AuthService;
+import db.SqlService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
 import utility.Packages;
+
+import java.util.HashMap;
 
 public class CreateCatalogServerHandler extends AbstractHandler {
 
@@ -23,7 +27,8 @@ public class CreateCatalogServerHandler extends AbstractHandler {
             String newCatalog = packageBody.getVariable();
             String parentCatalog = newCatalog.indexOf(packageBody.getSystemSeparator()) != -1 ?
                     newCatalog.substring(0, newCatalog.lastIndexOf(packageBody.getSystemSeparator())) : null;
-            if(AuthService.getInstance().insertNewCatalog(newCatalog, parentCatalog, packageBody.getIdClient())){
+            if(SqlService.getInstance().insertNewCatalog(newCatalog, parentCatalog,
+                    Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID)))){
                 Packages.updateStructure(ctx.channel());
             }
             ReferenceCountUtil.release(msg);

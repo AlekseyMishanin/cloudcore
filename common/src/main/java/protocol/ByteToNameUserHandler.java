@@ -2,8 +2,12 @@ package protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
+
+import java.util.HashMap;
 
 /**
  * Класс инкапсулирует часть протокола, отвечающую за чтение имени пользователя.
@@ -36,7 +40,9 @@ public class ByteToNameUserHandler extends AbstractHandler {
             //читаем имя файла во временный буфер
             buf.readBytes(data);
             //в пакете присваиваем новое имя пользователя
-            packageBody.setNameUser(new String(data));
+            //packageBody.setNameUser(new String(data));
+            HashMap<Client,String> idValue = ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get();
+            idValue.put(Client.LOGIN,new String(data));
             if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION ||
                     packageBody.getCommand() == ProtocolCommand.REGISTRATION)
             {

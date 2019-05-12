@@ -8,34 +8,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 
-public class AuthService extends DB_mysql{
+public class SqlService {
 
-    private static AuthService authService = new AuthService();
+    private static SqlService sqlService = new SqlService();
     private Statement statement = null;
+    private Connection connection = null;
 
-    private AuthService(){}
-
-    public void start(){
-        setURL("localhost", "test", 3306);
-        connect("test", "test");
-        connect();
-    }
-
-    public static AuthService getInstance(){ return authService;}
-
-    private void connect() {
+    private SqlService(){
         try {
-            statement = getConnection().createStatement();
-            String sql1 = "SET character_set_client='utf8'";
-            String sql2 = "SET character_set_connection='utf8'";
-            String sql3 = "SET character_set_results='utf8'";
-            statement.execute(sql1);
-            statement.execute(sql2);
-            statement.execute(sql3);
+            this.connection = DataSource.getInstance().getConnection();
+            this.statement = DataSource.getInstance().getStatement();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+    public static SqlService getInstance(){ return sqlService;}
+
 
     public int verifyLoginAndPass(@NonNull String login, int pass){
         String sql = String.format("SELECT id FROM test.users WHERE login =\"%s\" AND password = %d",login, pass);
@@ -107,7 +96,7 @@ public class AuthService extends DB_mysql{
         //SELECT CASE WHEN fl.name IS NOT NULL THEN CONCAT(rs.path,"/",fl.name) ELSE rs.path END
         String sql = String.format("SELECT rs.path " +
                 "                   FROM test.reestr AS rs LEFT JOIN test.files AS fl " +
-                "                   ON rs.idfile = fl.id AND rs.iduser = %d ORDER BY 1 ASC", iduser);
+                "                   ON rs.idfile = fl.id WHERE rs.iduser = %d ORDER BY 1 ASC", iduser);
         StringBuilder str = new StringBuilder();
         try {
             ResultSet rs = statement.executeQuery(sql);
@@ -171,16 +160,16 @@ public class AuthService extends DB_mysql{
             PreparedStatement ps = null;
             boolean result = false;
             try{
-                getConnection().setAutoCommit(false);
+                connection.setAutoCommit(false);
                 File file = new File(pathToFile);
                 fis = new FileInputStream(file);
-                ps = getConnection().prepareStatement(sql1);
+                ps = connection.prepareStatement(sql1);
                 ps.setString(1, name);
                 ps.setLong(2, sizeFile);
                 ps.setBinaryStream(3, fis, (int)file.length());
                 ps.executeUpdate();
-                getConnection().commit();
-                getConnection().setAutoCommit(true);
+                connection.commit();
+                connection.setAutoCommit(true);
 
                 ResultSet rs = statement.executeQuery(sql2);
                 rs.next();
@@ -216,12 +205,11 @@ public class AuthService extends DB_mysql{
         //String nameFile = path.substring(path.lastIndexOf(delim)+1);
         String sql = String.format("SELECT size FROM test.files AS fl INNER JOIN test.reestr AS rs " +
                 "ON fl.id=rs.idfile AND rs.path =\"%s\"", path);
-        System.out.println(sql);
         try {
             ResultSet rs = statement.executeQuery(sql);
             if(rs.next()){
-            long size = rs.getLong(1);
-            return size;
+                long size = rs.getLong(1);
+                return size;
             }
 
         } catch (SQLException e) {
@@ -236,7 +224,6 @@ public class AuthService extends DB_mysql{
         String nameFile = path.substring(path.lastIndexOf(delim)+1);
         String sql = String.format("SELECT file FROM test.files AS fl INNER JOIN test.reestr AS rs " +
                 "ON fl.id=rs.idfile AND rs.path =\"%s\" AND fl.name =\"%s\"", path, nameFile);
-        System.out.println(sql);
         try {
             ResultSet rs = statement.executeQuery(sql);
             if(rs.next()) {

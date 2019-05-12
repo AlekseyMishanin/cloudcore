@@ -48,7 +48,6 @@ public class ByteToNameVariableHandler extends AbstractHandler {
                     packageBody.setStatus(PackageBody.Status.DELETECATALOG);
                     break;
                 case READNAMECATALOGFORFILE:
-                    System.out.println(4);
                     packageBody.setStatus(PackageBody.Status.READLENGTHNAMEFILE);
                     break;
                 case READNAMEOLDPATH:

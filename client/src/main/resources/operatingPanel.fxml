@@ -20,8 +20,8 @@
         <HBox HBox.hgrow="ALWAYS" alignment="center"><fx:include source="labelCloud.fxml"/></HBox>
     </HBox>
     <HBox GridPane.columnIndex="0" GridPane.rowIndex="1">
-        <fx:include source="menuBarClient.fxml" HBox.hgrow="ALWAYS"/>
-        <fx:include source="menuBarCloud.fxml" HBox.hgrow="ALWAYS"/>
+        <fx:include source="menuBarClient.fxml" fx:id="barClient" HBox.hgrow="ALWAYS"/>
+        <fx:include source="menuBarCloud.fxml" fx:id="barCloud" HBox.hgrow="ALWAYS"/>
     </HBox>
     <HBox fx:id="hboxTreeView" alignment="center" spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.vgrow="ALWAYS">
         <padding>

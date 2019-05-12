@@ -1,13 +1,17 @@
 package protocol;
 
-import db.AuthService;
+import db.SqlService;
+import db.arhive.AuthService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
+import protocol.attribute.Client;
 import utility.Packages;
 
 import java.io.File;
+import java.util.HashMap;
 
 public class OperationNameCatalogServerHandler extends AbstractHandler {
 
@@ -32,31 +36,31 @@ public class OperationNameCatalogServerHandler extends AbstractHandler {
                         oldPath,
                         newPath,
                         File.separator,
-                        packageBody.getIdClient()
+                        Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID))
                 )){
                     Packages.updateStructure(ctx.channel());
                 }
             }
 
             if (packageBody.getCommand() == ProtocolCommand.CUTCATALOG){
-                if(AuthService.getInstance().insertCopyPath(
+                if(SqlService.getInstance().insertCopyPath(
                         oldPath,
                         newPath,
                         File.separator,
-                        packageBody.getIdClient()) &&
-                   AuthService.getInstance().deleteOldPath(
+                        Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID))) &&
+                   SqlService.getInstance().deleteOldPath(
                         oldPath,
-                        packageBody.getIdClient()
+                           Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID))
                 )){
                     Packages.updateStructure(ctx.channel());
                 }
             }
             if (packageBody.getCommand() == ProtocolCommand.RENAMECATALOG){
-                if(AuthService.getInstance().renamePath(
+                if(SqlService.getInstance().renamePath(
                         oldPath,
                         newPath,
                         File.separator,
-                        packageBody.getIdClient()
+                        Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID))
                 )){
                     Packages.updateStructure(ctx.channel());
                 }

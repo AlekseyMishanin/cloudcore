@@ -338,4 +338,11 @@ public class Packages {
                 catalog
         );
     }
+
+    public static void deniedInAction(@NonNull final Channel channel) throws InterruptedException {
+        sendCommandToChannel(
+                channel,
+                ProtocolCommand.DENIED.getData()
+        );
+    }
 }

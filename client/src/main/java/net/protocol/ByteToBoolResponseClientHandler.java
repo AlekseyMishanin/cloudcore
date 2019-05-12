@@ -31,11 +31,9 @@ public class ByteToBoolResponseClientHandler extends AbstractHandler {
             }
             boolean bool = buf.readBoolean();
             if(packageBody.getCommand()==ProtocolCommand.AUTHRESPONSE){
-//                System.out.println("auth");
                 ListController.getInstance().getAuthorisationController().resultAuthorisation(bool);
             }
             if(packageBody.getCommand()==ProtocolCommand.REGRESPONSE){
-//                System.out.println("reg");
                 ListController.getInstance().getAuthorisationController().resultRegistration(bool);
             }
             ReferenceCountUtil.release(msg);

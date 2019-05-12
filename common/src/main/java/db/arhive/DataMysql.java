@@ -1,14 +1,14 @@
-package db;
+package db.arhive;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DB_mysql extends DB_base{
+public class DataMysql extends DataBase {
 
     private com.mysql.jdbc.Connection connection = null;
 
-    public DB_mysql(){
+    public DataMysql(){
         super("com.mysql.jdbc.Driver");
     }
 

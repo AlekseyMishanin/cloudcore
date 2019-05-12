@@ -23,20 +23,20 @@ public class PackageBody {
         READLENGTHSTRUCTURE,    //читаем длину струкруты
         READSTRINGSTRUCTURE,    //читаем строку струкруты
         BUILDSTRUCTURE,         //строим структуру каталогов на стороне клиента
-        READLENGTHPATHCATALOG,    //читаем длину нового каталога
+        READLENGTHPATHCATALOG,  //читаем длину нового каталога
         READPATHNEWCATALOG,     //читаем путь нового каталога
-        CREATENEWCATALOG,
-        CHANGEDSTRUCTURE,
-        READLENGTHDELETECATALOG,
-        READNAMEDELETECATALOG,
-        DELETECATALOG,
-        READLENGTHCATALOGFORFILE,
-        READNAMECATALOGFORFILE,
-        READLENGTHOLDPATH,
-        READLENGTHNEWPATH,
-        READNAMEOLDPATH,
-        READNAMENEWPATH,
-        OPERATIONNAMEPATH;
+        CREATENEWCATALOG,       //создаем новый каталог
+        CHANGEDSTRUCTURE,       //структура каталогов изменилась
+        READLENGTHDELETECATALOG,    //читаем длину пути каталога для удаления
+        READNAMEDELETECATALOG,      //читаем путь каталога для удаления
+        DELETECATALOG,              //удаляем каталог
+        READLENGTHCATALOGFORFILE,   //читаем длину каталога для вставки файла
+        READNAMECATALOGFORFILE,     //читаем путь каталога для вставки файла
+        READLENGTHOLDPATH,          //чидаем длину старого пути
+        READLENGTHNEWPATH,          //читаем длину нового пути
+        READNAMEOLDPATH,            //читаем старый путь
+        READNAMENEWPATH,            //читаем новый путь
+        OPERATIONNAMEPATH;          //переименовываем путь
     }
 
     static public final String systemSeparator = "/";
@@ -50,18 +50,13 @@ public class PackageBody {
     private String structureCatalog;    //структура каталогов
     private int lengthVariable;
     private String variable;
-    private String nameUser;            //имя пользователя
     private String nameFile;            //имя файла
-    private int idClient;
-    private boolean isCurrentUser;
-    private String pasteCatalog;
-    private int lengthPasteCatalog;
+    private String pasteCatalog;        //имя каталога для вставки
+    private int lengthPasteCatalog;     //длина имени каталога для вставки
 
     public PackageBody() {
         this.command = null;
         this.status = Status.NONE;
-        this.idClient = -1;
-        this.isCurrentUser = false;
     }
 
     public ProtocolCommand getCommand() {
@@ -104,14 +99,6 @@ public class PackageBody {
         this.lenghFile = lenghFile;
     }
 
-    public String getNameUser() {
-        return nameUser;
-    }
-
-    public void setNameUser(String nameUser) {
-        this.nameUser = nameUser;
-    }
-
     public String getNameFile() {
         return nameFile;
     }
@@ -119,14 +106,6 @@ public class PackageBody {
     public void setNameFile(String nameFile) {
         this.nameFile = nameFile;
     }
-
-    public int getIdClient() { return idClient; }
-
-    public void setIdClient(int idClient) { this.idClient = idClient; }
-
-    public boolean isCurrentUser() { return isCurrentUser; }
-
-    public void setCurrentUser(boolean currentUser) { isCurrentUser = currentUser; }
 
     public int getLengthStructure() {
         return lengthStructure;
@@ -176,14 +155,11 @@ public class PackageBody {
      * Метод очищает основные поля класса.
      * */
     public void clear(){
-        if(!isCurrentUser) {
-            lenghUserName = 0;
-            nameUser = null;
-        }
         command = null;
         status = Status.NONE;
         lenghFile = 0;
         lengthPasteCatalog =
+        lenghUserName =
         lenghFileName =
         lengthStructure =
         lengthVariable = 0;
@@ -200,7 +176,6 @@ public class PackageBody {
                 lenghUserName + "\n" +
                 lenghFileName + "\n" +
                 lenghFile + "\n" +
-                nameUser + "\n" +
                 nameFile + "\n";
     }
 }

@@ -36,7 +36,6 @@ public class ByteToFileClientHandler extends AbstractHandler {
                 packageBody.getStatus() == PackageBody.Status.READFILE) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
-            //System.out.println(7);
             //если в буфере есть данные для чтения
             if(out == null) {
                 out = new FileOutputStream(packageBody.getVariable());

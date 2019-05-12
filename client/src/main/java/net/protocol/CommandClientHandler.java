@@ -1,24 +1,17 @@
-package protocol;
+package net.protocol;
 
+import dialog.StaticAlert;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCountUtil;
 import model.PackageBody;
 import model.ProtocolCommand;
-import protocol.attribute.Client;
+import protocol.AbstractHandler;
 
-import java.util.HashMap;
-
-/**
- * Класс инкапсулирует часть протокола, отвечающую за чтение команды.
- *
- * @author Mishanin Aleksey
- * */
-public class CommandHandler extends AbstractHandler {
-
+public class CommandClientHandler extends AbstractHandler {
     private PackageBody packageBody;
 
-    public CommandHandler(PackageBody packageBody) {
+    public CommandClientHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
     }
 
@@ -40,34 +33,19 @@ public class CommandHandler extends AbstractHandler {
                 case REGRESPONSE:
                     packageBody.setStatus(PackageBody.Status.READBOOLRESPONSE);
                     break;
-                case STRUCTUREREQUEST:
-                    packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURECATALOG);
-                    break;
                 case STRUCTURERESPONSE:
                     packageBody.setStatus(PackageBody.Status.READLENGTHSTRUCTURE);
-                    break;
-                case NEWCATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHPATHCATALOG);
                     break;
                 case UPDATESTRUCTURE:
                     packageBody.setStatus(PackageBody.Status.CHANGEDSTRUCTURE);
                     break;
-                case DELETECATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHDELETECATALOG);
-                    break;
-                case FILE:
                 case FILERESPONSE:
-                case FILEREQUEST:
                     packageBody.setStatus(PackageBody.Status.READLENGTHCATALOGFORFILE);
                     break;
-                case COPYCATALOG:
-                case CUTCATALOG:
-                case RENAMECATALOG:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHOLDPATH);
-                    break;
-                case AUTHORIZATION:
-                case REGISTRATION:
-                    packageBody.setStatus(PackageBody.Status.READLENGTHUSER);
+                case DENIED:
+                    StaticAlert.deniedOperation();
+                    ReferenceCountUtil.release(msg);
+                    packageBody.clear();
                     break;
                 default:
                     break;
@@ -75,9 +53,5 @@ public class CommandHandler extends AbstractHandler {
         }
         //отправляем сообщение к следующему ChannelHandler
         ctx.fireChannelRead(msg);
-    }
-
-    private boolean checkIdUser(ChannelHandlerContext ctx){
-        return ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID) != null;
     }
 }

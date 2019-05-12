@@ -3,7 +3,6 @@ package model;
 public enum MenuCommand {
     NEWFILE,
     NEWCATALOG,
-    MOVE,
     REMANE,
     DELETE,
     SEARCH,
@@ -11,5 +10,9 @@ public enum MenuCommand {
     CUT,
     PASTE,
     UPLOAD,
-    DOWNLOAD
+    DOWNLOAD,
+    TREEVISIBLE,
+    EXIT,
+    MANUAL,
+    ABOUT
 }

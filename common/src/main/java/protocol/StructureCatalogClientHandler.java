@@ -20,7 +20,6 @@ public class StructureCatalogClientHandler extends AbstractHandler {
         //если пакет содержит нужную команду и статус
         if(packageBody.getCommand() == ProtocolCommand.STRUCTURERESPONSE &&
                 packageBody.getStatus() == PackageBody.Status.READSTRINGSTRUCTURE) {
-            System.out.println(3);
             if(packageBody.getLengthStructure()!=0) {
                 //если кол-во байт доступных для чтения меньше длины имени файла
                 if (buf.readableBytes() < packageBody.getLengthStructure()) {
@@ -31,7 +30,6 @@ public class StructureCatalogClientHandler extends AbstractHandler {
                 byte[] data = new byte[packageBody.getLengthStructure()];
                 //читаем имя файла во временный буфер
                 buf.readBytes(data);
-
                 packageBody.setStructureCatalog(new String(data));
             }
             packageBody.setStatus(PackageBody.Status.BUILDSTRUCTURE);

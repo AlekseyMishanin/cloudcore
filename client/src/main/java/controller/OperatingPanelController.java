@@ -28,7 +28,9 @@ public class OperatingPanelController implements Observer {
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label labelStatus;
     @FXML private ContextMenuController clientMenuController;    //дочерний контроллер (контекстное меню)
-    @FXML private ContextMenuController cloudMenuController;     //дочерний контроллер (контекстное меню)
+    @FXML private ContextMenuController cloudMenuController;     //дочерний контроллер (контекстное облака)
+    @FXML private MenuBarClientController barClientController;   //дочерний контроллер (меню бар клиента)
+    @FXML private MenuBarCloudController barCloudController;     //дочерний контроллер (меню бар облака)
 
     public void initialize() throws IOException {
 
@@ -79,6 +81,8 @@ public class OperatingPanelController implements Observer {
                 }
             }).start();
         });
+        barClientController.addObserver(this::update);  //регистрируем слушателя
+        barCloudController.addObserver(this::update);   //регистрируем слушателя
         clientMenuController.addObserver(this::update); //регистрируем слушателя
         cloudMenuController.addObserver(this::update);  //регистрируем слушателя
         cloudMenuController.hideNewFile();
@@ -158,6 +162,76 @@ public class OperatingPanelController implements Observer {
                         e.printStackTrace();
                     }
                     break;
+            }
+        }
+        if(((Observable)barClientController).equals(o) ){
+            switch ((MenuCommand)arg){
+                case TREEVISIBLE:
+                    treeVievClient.setVisible(barClientController.isVisibleTree());
+                    treeVievClient.setManaged(barClientController.isVisibleTree());
+                    break;
+                case COPY:
+                    TreeViewUtility.copyFileAndTreeItem(treeVievClient);
+                    break;
+                case CUT:
+                    TreeViewUtility.cutFileAndTreeItem(treeVievClient);
+                    break;
+                case PASTE:
+                    TreeViewUtility.pasteFileAndTreeItem(treeVievClient);
+                    break;
+                case EXIT:
+                    ListController.getInstance().setOperatingPanelController(null);
+                    ListController.getInstance().setAuthorisationController(null);
+                    NettyNetwork.getInstance().close();
+                    Platform.exit();
+                    break;
+                case UPLOAD:
+                    LoadFiles.getInstance().uploadFileClient(rootNode.getScene().getWindow());
+                    break;
+                case DOWNLOAD:
+                    LoadFiles.getInstance().downloadFileClient(rootNode.getScene().getWindow());
+                    break;
+                case ABOUT:
+                case MANUAL:
+                case SEARCH:
+                    //в разработке
+            }
+        }
+        if(((Observable)barCloudController).equals(o) ){
+            switch ((MenuCommand)arg){
+                case TREEVISIBLE:
+                    treeVievCloud.setVisible(barCloudController.isVisibleTree());
+                    treeVievCloud.setManaged(barCloudController.isVisibleTree());
+                    break;
+                case COPY:
+                    TreeViewUtility.copyFileCloud(treeVievCloud);
+                    break;
+                case CUT:
+                    TreeViewUtility.cutFileCloud(treeVievCloud);
+                    break;
+                case PASTE:
+                    TreeViewUtility.pasteFileCloud(treeVievCloud);
+                    break;
+                case EXIT:
+                    ListController.getInstance().setOperatingPanelController(null);
+                    ListController.getInstance().setAuthorisationController(null);
+                    NettyNetwork.getInstance().close();
+                    Platform.exit();
+                    break;
+                case UPLOAD:
+                    LoadFiles.getInstance().uploadFileServer(treeVievCloud);
+                    break;
+                case DOWNLOAD:
+                    try {
+                        LoadFiles.getInstance().downloadFileServer(treeVievCloud);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case ABOUT:
+                case MANUAL:
+                case SEARCH:
+                    //в разработке
             }
         }
     }

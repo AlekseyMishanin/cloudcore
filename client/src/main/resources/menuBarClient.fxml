@@ -1,38 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <HBox xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml">
+            xmlns:fx="http://javafx.com/fxml"
+      fx:controller="controller.MenuBarClientController">
     <MenuBar fx:id="menuBar" HBox.hgrow="ALWAYS">
         <menus>
             <Menu text="File">
                 <items>
-                    <MenuItem text="New"/>
-                    <MenuItem text="Open"/>
-                    <MenuItem text="Save"/>
-                    <MenuItem text="Save As"/>
+                    <MenuItem fx:id="upload" text="Upload" onAction="#getMenuCommand"/>
+                    <MenuItem fx:id="download" text="Download" onAction="#getMenuCommand"/>
+                    <CheckMenuItem fx:id="treeVisible" text="Tree visible" selected="true" onAction="#getMenuCommand"/>
                     <SeparatorMenuItem  />
-                    <MenuItem text="Exit"/>
+                    <MenuItem fx:id="exit" text="Exit" onAction="#getMenuCommand"/>
                 </items>
             </Menu>
             <Menu text="Edit">
                 <items>
-                    <MenuItem text="Copy"/>
-                    <MenuItem text="Cut"/>
-                    <MenuItem text="Paste"/>
+                    <MenuItem fx:id="copy" text="Copy" onAction="#getMenuCommand"/>
+                    <MenuItem fx:id="cut" text="Cut" onAction="#getMenuCommand"/>
+                    <MenuItem fx:id="paste" text="Paste" onAction="#getMenuCommand"/>
                 </items>
             </Menu>
             <Menu text="Help">
                 <items>
-                    <MenuItem text="Search" disable="true"/>
-                    <MenuItem text="Online Manual" visible="false"/>
+                    <MenuItem fx:id="search" text="Search" disable="true" onAction="#getMenuCommand"/>
+                    <MenuItem fx:id="manual" text="Online Manual" visible="false" onAction="#getMenuCommand"/>
                     <SeparatorMenuItem />
-                    <MenuItem text="About" />
+                    <MenuItem fx:id="about" text="About" onAction="#getMenuCommand"/>
                 </items>
             </Menu>
         </menus>

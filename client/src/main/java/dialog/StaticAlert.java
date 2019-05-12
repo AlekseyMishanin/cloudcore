@@ -2,14 +2,17 @@ package dialog;
 
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import logger.LoggerCloud;
 import model.EnumOption;
+import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 
 public class StaticAlert {
+
+    private final static Logger logger = Logger.getLogger(StaticAlert.class);
+
     public static void showAlertFileExists(){
         Alert alert = new Alert(Alert.AlertType.WARNING, "File exists!", ButtonType.OK);
         alert.setHeaderText("Operation could not be performed");
@@ -40,7 +43,7 @@ public class StaticAlert {
     }
 
     public static void showAlertError(Exception e){
-        LoggerCloud.LOGGER.warning(e.getLocalizedMessage());
+
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText(e.getMessage());
@@ -65,6 +68,7 @@ public class StaticAlert {
             alert.showAndWait();
             return alert.getResult().getButtonData();
         } catch (Exception e){
+            logger.error(e.getMessage());
             return null;
         }
     }
@@ -76,7 +80,19 @@ public class StaticAlert {
             alert.showAndWait();
             return alert.getResult().getButtonData();
         } catch (Exception e){
+            logger.error(e.getMessage());
             return null;
+        }
+    }
+
+    public static void deniedOperation(){
+        try {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Внимание.", ButtonType.OK);
+            alert.setHeaderText("Сервер отказал в выполнении операции");
+            alert.showAndWait();
+        } catch (Exception e){
+            logger.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
