@@ -20,6 +20,8 @@ import java.util.TimerTask;
 
 /**
  * Класс контроллера для обработки событий окна авторизации.
+ *
+ * @author Mishanin Aleksey
  * */
 public class AuthorisationController {
 
@@ -192,7 +194,7 @@ public class AuthorisationController {
     }
 
     /**
-     * Класс инкапсулирует задание которое запускается объектом типа Timer
+     * Класс инкапсулирует задание которое запускает объект типа Timer
      * */
     class ClearLabelTask extends TimerTask{
         @Override

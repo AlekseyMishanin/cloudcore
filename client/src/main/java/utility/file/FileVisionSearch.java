@@ -6,10 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+/**
+ * Класс для рекурсивного поиска значения в выбранном каталоге
+ * */
 public class FileVisionSearch extends SimpleFileVisitor<Path> {
 
-    private String nameSearchObject;
-    private StringBuilder report = new StringBuilder();
+    private String nameSearchObject;                        //имя объекта для пописка
+    private StringBuilder report = new StringBuilder();     //результат поиска
 
     public FileVisitResult visitFile(Path path, BasicFileAttributes attrib) throws IOException {
         if(path.getFileName().toString().indexOf(nameSearchObject)!=-1) report.append("Success\tfile\t" + path.toString() + "\n");

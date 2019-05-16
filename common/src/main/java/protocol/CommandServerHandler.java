@@ -11,9 +11,15 @@ import utility.Packages;
 
 import java.util.HashMap;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за чтение командного байта на стороне сервера. Исходя из прочитанного командного
+ * байта объекту протокола присваивается статус определяющий отдельную, уникальную ветку обработки содержимого протокола
+ *
+ * @author Mishanin Aleksey
+ * */
 public class CommandServerHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;        //ссылка на объект протокола
 
     public CommandServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -38,6 +44,7 @@ public class CommandServerHandler extends AbstractHandler {
                     packageBody.setStatus(PackageBody.Status.READLENGTHUSER);
                     break;
                 default:
+                    //проверяем наличие в атрибутах канала id клиента
                     if(checkIdUser(ctx)){
                         switch (ProtocolCommand.getCommand(firstByte)){
                             case STRUCTUREREQUEST:
@@ -60,6 +67,7 @@ public class CommandServerHandler extends AbstractHandler {
                                 break;
                         }
                     } else {
+                        //если id клиента отсутствует в атрибутах, отвечаем клиенту отказом в выполнении операции
                         Packages.deniedInAction(ctx.channel());
                         ReferenceCountUtil.release(msg);
                         packageBody.clear();
@@ -71,6 +79,14 @@ public class CommandServerHandler extends AbstractHandler {
         ctx.fireChannelRead(msg);
     }
 
+    /**
+     * Служебный метод. Вычитывает из канала id клиента и возвращает true в случае наличия id
+     *
+     * @param   ctx
+     *          объект ChannelHandlerContext, который содержит ссылку на канал
+     *
+     * @return  true - если id существует, false  в противном случае
+     * */
     private boolean checkIdUser(ChannelHandlerContext ctx){
         return ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID) != null;
     }

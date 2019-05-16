@@ -8,6 +8,11 @@ import model.MenuCommand;
 
 import java.util.Observable;
 
+/**
+ * Контроллер MenuBar клиента. При каждом нажатии уведомляет слушателя о наступлении события
+ *
+ * @author Mishanin Aleksey
+ * */
 public class MenuBarClientController extends Observable {
 
     @FXML private MenuItem upload;

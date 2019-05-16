@@ -35,7 +35,6 @@ public class ToLongDecoder extends AbstractHandler {
             packageBody.setLenghFile(buf.readLong());
             //присваиваем пакету статус: чтение файла
             packageBody.setStatus(PackageBody.Status.READFILE);
-            //System.out.println(6);
         }
         //пересылаем сообщение следующему ChannelHandler
         ctx.fireChannelRead(msg);

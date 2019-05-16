@@ -5,6 +5,11 @@ import io.netty.channel.ChannelHandlerContext;
 import model.PackageBody;
 import model.ProtocolCommand;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за чтение имени каталога.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class ByteToPathOperationCatalogHandler extends AbstractHandler {
 
     private PackageBody packageBody;
@@ -22,16 +27,15 @@ public class ByteToPathOperationCatalogHandler extends AbstractHandler {
                 packageBody.getStatus() == PackageBody.Status.READNAMENEWPATH) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
-            //если кол-во байт доступных для чтения меньше длины имени файла
+            //если кол-во байт доступных для чтения меньше длины имени каталога
             if (buf.readableBytes() < packageBody.getLengthPasteCatalog()) {
                 //прекращаем обработку
                 return;
             }
-            //создаем временный буфер под имя пользователя
+            //создаем временный буфер под имя каталога
             byte[] data = new byte[packageBody.getLengthPasteCatalog()];
-            //читаем имя файла во временный буфер
+            //читаем имя каталога во временный буфер
             buf.readBytes(data);
-            //в пакете присваиваем новое имя пользователя
             packageBody.setPasteCatalog(new String(data));
             packageBody.setStatus(PackageBody.Status.OPERATIONNAMEPATH);
         }

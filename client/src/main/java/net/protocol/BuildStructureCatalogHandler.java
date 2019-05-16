@@ -8,9 +8,14 @@ import model.ProtocolCommand;
 import protocol.AbstractHandler;
 import utility.ListController;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за загрузку структуры каталогов на локальную машину клиента.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class BuildStructureCatalogHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;        //ссылка на объект протокола
 
     public BuildStructureCatalogHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -23,8 +28,7 @@ public class BuildStructureCatalogHandler extends AbstractHandler {
         //если пакет содержит нужную команду и статус
         if(packageBody.getCommand() == ProtocolCommand.STRUCTURERESPONSE &&
                 packageBody.getStatus() == PackageBody.Status.BUILDSTRUCTURE) {
-            //если кол-во байт доступных для чтения меньше длины имени файла
-            //нужно протестировать
+            //через список контроллеров вызываем метод для обновления TreeView
             ListController.getInstance().getOperatingPanelController().updateTreeViewCloud(packageBody.getStructureCatalog());
 
             ReferenceCountUtil.release(msg);

@@ -20,6 +20,11 @@ import java.nio.file.Path;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Класс контроллера для обработки событий основного рабочего окна.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class OperatingPanelController implements Observer {
 
     @FXML private GridPane rootNode;
@@ -27,8 +32,8 @@ public class OperatingPanelController implements Observer {
     @FXML private TreeView<ExtFile> treeVievCloud;
     @FXML private ProgressIndicator progressIndicator;
     @FXML private Label labelStatus;
-    @FXML private ContextMenuController clientMenuController;    //дочерний контроллер (контекстное меню)
-    @FXML private ContextMenuController cloudMenuController;     //дочерний контроллер (контекстное облака)
+    @FXML private ContextMenuController clientMenuController;    //дочерний контроллер (контекстное меню клиента)
+    @FXML private ContextMenuController cloudMenuController;     //дочерний контроллер (контекстное меню облака)
     @FXML private MenuBarClientController barClientController;   //дочерний контроллер (меню бар клиента)
     @FXML private MenuBarCloudController barCloudController;     //дочерний контроллер (меню бар облака)
 
@@ -37,18 +42,20 @@ public class OperatingPanelController implements Observer {
         //присваиваем списку контроллеров ссылку на текущий контроллер
         ListController.getInstance().setOperatingPanelController(this);
 
-
         File[] roots = File.listRoots();
+        //присваиваем корни для деревьев клиента и облака
         treeVievClient.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
         treeVievCloud.setRoot(new TreeItem<>(new ExtFile(User.SETTING.getName())));
 
         //запрашиваем у сервера структуру каталогов/файлов
         NettyNetwork.getInstance().requestDirectoryStructure();
 
+        //присваиваем корню дерева клиента дочерние элементы
         for (int i = 0; i < roots.length; i++) {
             TreeItem<ExtFile> rootChild = new TreeItem<>(new ExtFile(roots[i].getPath()));
             treeVievClient.getRoot().getChildren().addAll(rootChild);
         }
+        //вешаем на дерево клиента обработку события выбора элемента. Краткая суть: при выборе элемента в выбранный элемент подргужаются дочерние элементы
         treeVievClient.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             new Thread(new Runnable() {
                 @Override
@@ -89,6 +96,9 @@ public class OperatingPanelController implements Observer {
         cloudMenuController.hideSearch();
     }
 
+    /**
+     * Метод для обработки сообщений от наблюдаемого объекта
+     * */
     @Override
     public void update(Observable o, Object arg) {
         //проверяем то, что уведомление пришло от контроллера контекстного меню
@@ -236,6 +246,12 @@ public class OperatingPanelController implements Observer {
         }
     }
 
+    /**
+     * Метод обновляет перестраивает дерево облака
+     *
+     * @param   struct
+     *          структура каталогов
+     * */
     public void updateTreeViewCloud(String struct){
         TreeViewUtility.updateStructureTreeViewCloud(treeVievCloud,struct);
     }

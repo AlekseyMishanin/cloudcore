@@ -25,6 +25,7 @@ public class ServerNetty implements PoolConstantName {
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
+            //создаем мапу для сохранения атрибутов канала
             final AttributeKey<Map<Client,String>> id = AttributeKey.newInstance(CLIENTCONFIG);
             ServerBootstrap startSetting = new ServerBootstrap();
             startSetting.group(mainGroup,workerGroup)
@@ -52,6 +53,7 @@ public class ServerNetty implements PoolConstantName {
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
+            //разрешаем на принятых каналах применять атрибуты
             startSetting.childAttr(id, new HashMap<Client,String>());
             ChannelFuture future = startSetting.bind(8189).sync();
             future.channel().closeFuture().sync();

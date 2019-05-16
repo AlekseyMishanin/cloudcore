@@ -7,6 +7,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Класс отвечает за создание пула соединений с БД.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class DataSource {
 
     private static DataSource dataSource = new DataSource();

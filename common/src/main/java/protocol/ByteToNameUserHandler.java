@@ -16,7 +16,7 @@ import java.util.HashMap;
  * */
 public class ByteToNameUserHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;    //ссылка на объект протокола
 
     public ByteToNameUserHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -39,18 +39,16 @@ public class ByteToNameUserHandler extends AbstractHandler {
             byte[] data = new byte[packageBody.getLenghUserName()];
             //читаем имя файла во временный буфер
             buf.readBytes(data);
-            //в пакете присваиваем новое имя пользователя
-            //packageBody.setNameUser(new String(data));
+            //получаем из канала ссылку на объект атрибутов.
             HashMap<Client,String> idValue = ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get();
+            //добавляем в объект атрибутов логин пользователя
             idValue.put(Client.LOGIN,new String(data));
+            //если пришла команда на авторизацию или регистрацию
             if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION ||
                     packageBody.getCommand() == ProtocolCommand.REGISTRATION)
             {
+                //меняем статус протокола на чтение пароля
                 packageBody.setStatus(PackageBody.Status.READPASSWORD);
-            } else {
-                //присваиваем статус: чтение длины имени файла
-                //packageBody.setStatus(PackageBody.Status.READLENGTHNAMEFILE);
-                //System.out.println(3);
             }
         }
         //отправляем сообщение к следующему ChannelHandler

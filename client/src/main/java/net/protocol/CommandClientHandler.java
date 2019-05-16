@@ -8,6 +8,11 @@ import model.PackageBody;
 import model.ProtocolCommand;
 import protocol.AbstractHandler;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за работу с командным байтом
+ *
+ * @author Mishanin Aleksey
+ * */
 public class CommandClientHandler extends AbstractHandler {
     private PackageBody packageBody;
 
@@ -43,6 +48,7 @@ public class CommandClientHandler extends AbstractHandler {
                     packageBody.setStatus(PackageBody.Status.READLENGTHCATALOGFORFILE);
                     break;
                 case DENIED:
+                    //если в выполенении операции было отказано, выводим клиенту алерт с сообщением
                     StaticAlert.deniedOperation();
                     ReferenceCountUtil.release(msg);
                     packageBody.clear();

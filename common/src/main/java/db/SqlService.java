@@ -8,6 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 
+/**
+ * Класс отвечает за работу с БД. Содержит ряд методов с sql-запросами для выполения операций: добавить/удалить/
+ * копировать/вырезать/переименовать каталог/файл и т.д.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class SqlService {
 
     private static SqlService sqlService = new SqlService();

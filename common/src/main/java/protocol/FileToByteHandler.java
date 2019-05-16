@@ -22,13 +22,13 @@ import java.util.concurrent.RecursiveAction;
 
 
 /**
- * Класс инкапсулирует часть протокола, отвечающую запись файла в канал со стороны сервера.
+ * Класс инкапсулирует часть протокола, отвечающую за оптарвку файла от сервера клиенту.
  *
  * @author Mishanin Aleksey
  * */
 public class FileToByteHandler extends AbstractHandler{
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;        //ссылка на объект протокола
 
     public FileToByteHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -39,34 +39,47 @@ public class FileToByteHandler extends AbstractHandler{
         //если пакет содержит нужную команду и статус
         if((packageBody.getCommand() == ProtocolCommand.FILEREQUEST) &&
                 packageBody.getStatus() == PackageBody.Status.WRITEFILE) {
+            //освобождаем сообдение
             ReferenceCountUtil.release(msg);
+            //запускаем задачу в демоне, чтобы избедать взаимной блокировки
             new RecursiveAction(){
                 @Override
                 protected void compute() {
+                    //определяем путь до каталога на стороне клиента, где будет сохранен файл
                     String catalogClient = packageBody.getVariable();
+                    //определяем имя файла
                     String pathToFile = packageBody.getNameFile();
+                    //получаем ссылку на канал
                     Channel channel = ctx.channel();
+                    //строим путь ко временной папке клиента на сервере
                     Path path = Paths.get("ServerCloud/" + ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN));
                     ReadableByteChannel inChannel = null;
                     FileChannel outChannel = null;
                     try {
+                        //если временная папка не существует, создаем ее
                         if(!Files.exists(path)){ Files.createDirectory(path);}
+                        //вытягиваем из БД длину файла при помощи sql
                         long size = SqlService.getInstance().selectSizeFile(pathToFile,
                                 PackageBody.systemSeparator,
                                 Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID)));
-                        System.out.println(size);
+                        //если длина файла = 0 прерываем обработку
                         if(size == 0) return;
+                        //открываем байтовый поток к файлу сохраненному в БД
                         InputStream in = SqlService.getInstance().selectFile(pathToFile,
                                 PackageBody.systemSeparator,
                                 Integer.parseInt(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.ID)));
+                        //если поток не удалось открыть, прерываем обработку
                         if(in == null) return;
+                        //открываем канал для байтового потока с файлом
                         inChannel = Channels.newChannel(in);
-
+                        //откываем канал к файлу во временной папке клиента на сервере
                         outChannel = new FileOutputStream(
                                 path.toAbsolutePath().toString() +
                                         pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator))
                         ).getChannel();
+                        //перенаправляем байты из канала открытого для БД в канал открытый для временного файла
                         outChannel.transferFrom(inChannel,0,size);
+                        //отправляем файл клиенту. Файл считывается из временной папки клиента на сервере
                         Packages.sendFromServerToClient(
                                 channel,
                                 catalogClient+pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator)),

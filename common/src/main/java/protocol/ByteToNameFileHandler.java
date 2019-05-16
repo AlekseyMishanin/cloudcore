@@ -12,7 +12,7 @@ import model.ProtocolCommand;
  * */
 public class ByteToNameFileHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;    //ссылка на объект протокола
 
     public ByteToNameFileHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -48,7 +48,6 @@ public class ByteToNameFileHandler extends AbstractHandler {
                 //присваиваем статус: скачать файл
                 packageBody.setStatus(PackageBody.Status.WRITEFILE);
             }
-            //System.out.println(5);
         }
         //отправляем сообщение к следующему ChannelHandler
         ctx.fireChannelRead(msg);

@@ -7,6 +7,11 @@ import model.MenuCommand;
 
 import java.util.Observable;
 
+/**
+ * Контроллер контекстного меню. При каждом нажатии уведомляет слушателя о наступлении события
+ *
+ * @author Mishanin Aleksey
+ * */
 public class ContextMenuController extends Observable {
 
     @FXML private MenuItem newFile;

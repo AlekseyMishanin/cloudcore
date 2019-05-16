@@ -9,16 +9,27 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 
+/**
+ * Класс содержит набор алертов для различных операций со структурой каталогов
+ *
+ * @author Mishanin Aleksey
+ * */
 public class StaticAlert {
 
     private final static Logger logger = Logger.getLogger(StaticAlert.class);
 
+    /**
+     * Метод уведомляет о невоможности выполнения операции
+     * */
     public static void showAlertFileExists(){
         Alert alert = new Alert(Alert.AlertType.WARNING, "File exists!", ButtonType.OK);
         alert.setHeaderText("Operation could not be performed");
         alert.showAndWait();
     }
 
+    /**
+     * Метод запрашивает имя для нового файла/каталога
+     * */
     public static Optional<String> getNewName(EnumOption typeInputDialog){
         TextInputDialog textInputDialog = new TextInputDialog("");
         textInputDialog.setTitle(typeInputDialog.getValue());
@@ -27,6 +38,9 @@ public class StaticAlert {
         return textInputDialog.showAndWait();
     }
 
+    /**
+     * Метод запрашивает имя файла/каталога для поиска
+     * */
     public static Optional<String> showSearchDialog(){
         TextInputDialog textInputDialog = new TextInputDialog("");
         textInputDialog.setTitle(EnumOption.SEARCH.getValue());
@@ -42,6 +56,9 @@ public class StaticAlert {
         return stringWriter.toString();
     }
 
+    /**
+     * Метод выводит стек ошибок
+     * */
     public static void showAlertError(Exception e){
 
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -61,6 +78,9 @@ public class StaticAlert {
         alert.showAndWait();
     }
 
+    /**
+     * Метод запрашивает подтверждение выполнения операции
+     * */
     public static ButtonBar.ButtonData confirmOperation(){
         try {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.YES, ButtonType.NO);
@@ -73,6 +93,9 @@ public class StaticAlert {
         }
     }
 
+    /**
+     * Метод выводит подсказку
+     * */
     public static ButtonBar.ButtonData tipOperation(){
         try {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.OK);
@@ -85,6 +108,9 @@ public class StaticAlert {
         }
     }
 
+    /**
+     * Метод уведомляет об отказе сервера в выполнении операции
+     * */
     public static void deniedOperation(){
         try {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Внимание.", ButtonType.OK);

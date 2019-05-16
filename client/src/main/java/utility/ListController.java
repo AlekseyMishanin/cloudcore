@@ -3,6 +3,10 @@ package utility;
 import controller.AuthorisationController;
 import controller.OperatingPanelController;
 
+/**
+ * Класс содержит ссылки на контроллер авторизации и основного окна. Используется для обращения к методам контроллеров
+ * в канале netty клиента.
+ * */
 public class ListController {
 
     private static ListController list = new ListController();

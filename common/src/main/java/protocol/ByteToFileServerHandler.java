@@ -25,10 +25,10 @@ import java.util.concurrent.RecursiveAction;
  * */
 public class ByteToFileServerHandler extends AbstractHandler{
 
-    private PackageBody packageBody;
-    private byte[] dataArr;
-    private FileOutputStream out;
-    private long lengthFileLocal;
+    private PackageBody packageBody;    //объект протокола
+    private byte[] dataArr;             //временный массив. Чтобы не создавать множество отдельных массивов, т.е. избежать мусора
+    private FileOutputStream out;       //байтовый поток
+    private long lengthFileLocal;       //переменная содержит размер файла
 
     public ByteToFileServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -47,17 +47,21 @@ public class ByteToFileServerHandler extends AbstractHandler{
                 packageBody.getStatus() == PackageBody.Status.READFILE) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
-            //System.out.println(7);
-            //если в буфере есть данные для чтения
+            //если байтовый поток не существует
             if(out == null) {
+                //строим путь ко временной папке пользователя. Временная папка = ServerCloud/ЛогинПользователя
                 Path path = Paths.get("ServerCloud/" +
                         ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN));
+                //если в каталоге ServerCloud не существует папки пользователя, то создаем папку
                 if(!Files.exists(path)){Files.createDirectory(path);}
+                //присваиваем переменной хандлера длину файла
                 lengthFileLocal = packageBody.getLenghFile();
+                //создаем байтовый поток к файлу во временной папке
                 out = new FileOutputStream("ServerCloud/" +
                         ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN) +
                         "/" + packageBody.getNameFile());
             }
+            //если в буфере есть данные для чтения
             while (buf.isReadable()){
                 //определяем кол-во доступных для чтения байт
                 int j = buf.readableBytes() > 1024 ? 1024 : buf.readableBytes();
@@ -72,10 +76,11 @@ public class ByteToFileServerHandler extends AbstractHandler{
             ReferenceCountUtil.release(msg);
             //если не осталось байт для записи
             if (packageBody.getLenghFile() <= 0) {
-
+                //запускаем задачу в демоне
                 new RecursiveAction(){
                     @Override
                     protected void compute() {
+                        //отправляем sql-запрос к БД на добавление записи в таблицу. На основании возвращаемого результата определяем результат завершения операции
                         if(SqlService.getInstance().insertNewFile(
                                 packageBody.getVariable(),
                                 packageBody.getNameFile(),
@@ -86,6 +91,7 @@ public class ByteToFileServerHandler extends AbstractHandler{
                                         "/" + packageBody.getNameFile()
                         )){
                             try {
+                                //если новая запись была успешно добавлена в БД, то отправляем клиенту сообщение о том, что структура каталогов обновилась
                                 Packages.updateStructure(ctx.channel());
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -97,6 +103,7 @@ public class ByteToFileServerHandler extends AbstractHandler{
                 Thread.sleep(100);
                 //очищаем пакет
                 packageBody.clear();
+                //закрываем поток
                 out.close();
                 out = null;
                 lengthFileLocal = 0;

@@ -5,6 +5,11 @@ import io.netty.channel.ChannelHandlerContext;
 import model.PackageBody;
 import model.ProtocolCommand;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за чтение структуры каталогов на стороне клиента.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class StructureCatalogClientHandler extends AbstractHandler {
 
     private PackageBody packageBody;

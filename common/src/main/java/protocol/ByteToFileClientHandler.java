@@ -15,9 +15,9 @@ import java.io.FileOutputStream;
  * */
 public class ByteToFileClientHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
-    private byte[] dataArr;
-    private FileOutputStream out;
+    private PackageBody packageBody;    //объект протокола
+    private byte[] dataArr;             //временный буффер для загрузки байт
+    private FileOutputStream out;       //байтовый канал для вывода в файл
 
     public ByteToFileClientHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -36,12 +36,14 @@ public class ByteToFileClientHandler extends AbstractHandler {
                 packageBody.getStatus() == PackageBody.Status.READFILE) {
             //преобразуем Object к ByteBuf
             ByteBuf buf = ((ByteBuf) msg);
-            //если в буфере есть данные для чтения
+            //если поток пуст
             if(out == null) {
+                //создаем новый поток
                 out = new FileOutputStream(packageBody.getVariable());
             }
+            //если в ByteBuf есть остались байты для чтения
             while (buf.isReadable()){
-                //определяем кол-во доступных для чтения байт
+                //определяем кол-во доступных для чтения байт. Если кол-во доступных байт больше размера массива, то крутимся в цикле пока не прочитаем все байты
                 int j = buf.readableBytes() > 1024 ? 1024 : buf.readableBytes();
                 //записываем байты во временный буфер
                 buf.readBytes(dataArr,0,j);
@@ -56,6 +58,7 @@ public class ByteToFileClientHandler extends AbstractHandler {
             if (packageBody.getLenghFile() <= 0) {
                 //очищаем пакет
                 packageBody.clear();
+                //закрываем поток
                 out.close();
                 out = null;
             }

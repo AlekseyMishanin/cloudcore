@@ -14,9 +14,14 @@ import utility.Packages;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс инкапсулирует часть протокола, чтение пароля.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class ByteToPasswordServerHandler extends AbstractHandler {
 
-    private PackageBody packageBody;
+    private PackageBody packageBody;        //ссылка на объект протокола
 
     public ByteToPasswordServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -40,31 +45,33 @@ public class ByteToPasswordServerHandler extends AbstractHandler {
             final int pass = buf.readInt();
             //если статус протокола: запрос авторизации
             if(packageBody.getCommand() == ProtocolCommand.AUTHORIZATION){
-//                System.out.println("auth");
                 //отпралвяем в БД sql-запрос на получение ID пользователя
-                int ID = AuthService.getInstance().verifyLoginAndPass(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN),pass);
+                int ID = SqlService.getInstance().verifyLoginAndPass(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN),pass);
                 //присваиваем булевой переменной true если пользователь найден в БД, иначе false
                 boolean bool = ID == -1 ? false : true;
                 //если пользователь существует в БД
                 if(bool){
+                    //получаем ссылку на объект атрибутов канала
                     HashMap<Client,String> idValue = ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get();
+                    //присваиваем объекту атрибутов id клиента
                     idValue.put(Client.ID,Integer.toString(ID));
                 }
-                //отправляем ответ клиенту
+                //отправляем ответ клиенту об успешной авторизации
                 Packages.sendAuthorizationResponse(ctx.channel(),bool);
             }
             //если статус протокола: запрос регистрации
             if(packageBody.getCommand() == ProtocolCommand.REGISTRATION){
-//                System.out.println("reg");
                 //отправляем sql-запрос на добавление записи в БД
                 boolean bool = SqlService.getInstance().accountRegistration(ctx.channel().attr(AttributeKey.<HashMap<Client,String>>valueOf(CLIENTCONFIG)).get().get(Client.LOGIN),pass);
-                //отправляем ответ клиенту
+                //отправляем ответ клиенту об успешной (если bool=true) или не успешной (если bool=false) регистрации
                 Packages.sendRegistrationResponse(ctx.channel(),bool);
             }
             //освобождаем сообщение
             ReferenceCountUtil.release(msg);
+            //очищаем объект протокола
             packageBody.clear();
         } else {
+            //передаем сообщение следующему хандлеру
             ctx.fireChannelRead(msg);
         }
     }

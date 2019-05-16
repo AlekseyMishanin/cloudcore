@@ -8,6 +8,11 @@ import model.ProtocolCommand;
 import protocol.AbstractHandler;
 import utility.ListController;
 
+/**
+ * Класс инкапсулирует часть протокола, отвечающую за обработку ответа сервера на операцию авторизации/регистрации
+ *
+ * @author Mishanin Aleksey
+ * */
 public class ByteToBoolResponseClientHandler extends AbstractHandler {
 
     private PackageBody packageBody;
@@ -31,9 +36,11 @@ public class ByteToBoolResponseClientHandler extends AbstractHandler {
             }
             boolean bool = buf.readBoolean();
             if(packageBody.getCommand()==ProtocolCommand.AUTHRESPONSE){
+                //через список контроллеров, передаем результат авторизации в метод контроллера
                 ListController.getInstance().getAuthorisationController().resultAuthorisation(bool);
             }
             if(packageBody.getCommand()==ProtocolCommand.REGRESPONSE){
+                //через список контроллеров, передаем результат регистрации в метод контроллера
                 ListController.getInstance().getAuthorisationController().resultRegistration(bool);
             }
             ReferenceCountUtil.release(msg);

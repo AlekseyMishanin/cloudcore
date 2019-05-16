@@ -22,6 +22,11 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * Класс инкапсулирует Netty клиент.
+ *
+ * @author Mishanin Aleksey
+ * */
 public class NettyNetwork {
 
     private static NettyNetwork ourInstance = new NettyNetwork();
