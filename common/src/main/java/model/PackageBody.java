@@ -36,7 +36,8 @@ public class PackageBody {
         READLENGTHNEWPATH,          //читаем длину нового пути
         READNAMEOLDPATH,            //читаем старый путь
         READNAMENEWPATH,            //читаем новый путь
-        OPERATIONNAMEPATH;          //переименовываем путь
+        OPERATIONNAMEPATH,          //переименовываем путь
+        READCHECKSUM;               //читаем контрольную сумму
     }
 
     static public final String systemSeparator = "/";
@@ -46,6 +47,7 @@ public class PackageBody {
     private int lenghUserName;          //длина имени пользователя
     private int lenghFileName;          //длина имени файла
     private long lenghFile;             //длина файла
+    private long checksum;              //контрольная сумма
     private int lengthStructure;        //длина структуры каталогов
     private String structureCatalog;    //структура каталогов
     private int lengthVariable;
@@ -151,13 +153,18 @@ public class PackageBody {
         this.lengthPasteCatalog = lengthPasteCatalog;
     }
 
+    public long getChecksum() { return checksum; }
+
+    public void setChecksum(long checksum) { this.checksum = checksum; }
+
     /**
      * Метод очищает основные поля класса.
      * */
     public void clear(){
         command = null;
         status = Status.NONE;
-        lenghFile = 0;
+        lenghFile =
+                checksum = 0;
         lengthPasteCatalog =
         lenghUserName =
         lenghFileName =

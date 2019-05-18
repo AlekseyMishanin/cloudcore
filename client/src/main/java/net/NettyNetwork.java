@@ -5,6 +5,11 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.NonNull;
 import model.PackageTransport;
 import model.PackageBody;
@@ -56,12 +61,17 @@ public class NettyNetwork {
             public void run() {
                 EventLoopGroup group = new NioEventLoopGroup();
                 try {
+
                     Bootstrap clientBootstrap = new Bootstrap();
                     clientBootstrap.group(group);
                     clientBootstrap.channel(NioSocketChannel.class);
                     clientBootstrap.remoteAddress(new InetSocketAddress("localhost", 8189));
                     clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
+                            final SslContext sslCtx = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+                            if (sslCtx != null) {
+                                socketChannel.pipeline().addLast(sslCtx.newHandler(socketChannel.alloc(), "localhost", 8189));
+                            }
                             socketChannel.pipeline()
                                     .addLast("command",new CommandClientHandler(packageBody))
                                     .addLast("updateStructure", new UpadateStructureHandler(packageBody))
@@ -74,6 +84,7 @@ public class NettyNetwork {
                                     .addLast("lengthFileName",new ToIntegerDecoder(packageBody))
                                     .addLast("fileName",new ByteToNameFileHandler(packageBody))
                                     .addLast("lengthFile",new ToLongDecoder(packageBody))
+                                    .addLast("chunkedWriter", new ChunkedWriteHandler())
                                     .addLast("loadfile",new ByteToFileClientHandler(packageBody));
                             currentChannel = socketChannel;
                         }
@@ -94,6 +105,13 @@ public class NettyNetwork {
                 }
             }
         }).start();
+        try {
+            //проверяем наступило ли событие успешного соединения с сервером
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void close(){
@@ -108,8 +126,6 @@ public class NettyNetwork {
      * */
     public void loadData(Path pathToDownload, String pathToload){
         try {
-            //проверяем наступило ли событие успешного соединения с сервером
-            countDownLatch.await();
             //вызываем статический метод загрузки файла
             Packages.loadFromServerToClient(currentChannel, pathToDownload, pathToload);
         } catch (InterruptedException e) {
@@ -126,8 +142,6 @@ public class NettyNetwork {
      * */
     public void sendData(String cloudCatalog, Path path) throws InterruptedException {
         try {
-            //проверяем наступило ли событие успешного соединения с сервером
-            countDownLatch.await();
             //вызываем статический метод для отправки файла
             Packages.sendFromClienToServer(currentChannel, cloudCatalog ,path);
         } catch (InterruptedException e) {

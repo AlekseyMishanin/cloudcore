@@ -31,10 +31,21 @@ public class ToLongDecoder extends AbstractHandler {
                 //прекращаем обарботку
                 return;
             }
-            //записываем long в поле длины файла
-            packageBody.setLenghFile(buf.readLong());
-            //присваиваем пакету статус: чтение файла
-            packageBody.setStatus(PackageBody.Status.READFILE);
+            while(true){
+                if(packageBody.getStatus() == PackageBody.Status.READLENGTHFILE){
+                    //записываем long в поле длины файла
+                    packageBody.setLenghFile(buf.readLong());
+                    //присваиваем пакету статус: чтение контрольной суммы
+                    packageBody.setStatus(PackageBody.Status.READCHECKSUM);
+                } else if(packageBody.getStatus() == PackageBody.Status.READCHECKSUM){
+                    //записываем long в поле длины файла
+                    packageBody.setChecksum(buf.readLong());
+                    //присваиваем пакету статус: чтение файла
+                    packageBody.setStatus(PackageBody.Status.READFILE);
+                } else{
+                    break;
+                }
+            }
         }
         //пересылаем сообщение следующему ChannelHandler
         ctx.fireChannelRead(msg);

@@ -9,6 +9,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.AttributeKey;
 import model.PackageBody;
 import protocol.*;
@@ -25,6 +29,8 @@ public class ServerNetty implements PoolConstantName {
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
+            SelfSignedCertificate ssc = new SelfSignedCertificate();
+            final SslContext sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
             //создаем мапу для сохранения атрибутов канала
             final AttributeKey<Map<Client,String>> id = AttributeKey.newInstance(CLIENTCONFIG);
             ServerBootstrap startSetting = new ServerBootstrap();
@@ -34,22 +40,26 @@ public class ServerNetty implements PoolConstantName {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             PackageBody packageBody = new PackageBody();
+                            if (sslCtx != null) {
+                                socketChannel.pipeline().addLast(sslCtx.newHandler(socketChannel.alloc()));
+                            }
                             socketChannel.pipeline()
-                                    .addLast("command",new CommandServerHandler(packageBody))
-                                    .addLast("getListCatalog",new StructureCatalogServerHandler(packageBody))
-                                    .addLast("lengthFirst",new ToIntegerDecoder(packageBody))
-                                    .addLast("userName",new ByteToNameUserHandler(packageBody))
-                                    .addLast("getNameNewCatalog", new ByteToNameVariableHandler(packageBody))
-                                    .addLast("deleteCatalog", new DeleteCatalogServerHandler(packageBody))
-                                    .addLast("verifyRassword",new ByteToPasswordServerHandler(packageBody))
-                                    .addLast("lengthSecond",new ToIntegerDecoder(packageBody))
-                                    .addLast("getNewPathToCutOrCopy", new ByteToPathOperationCatalogHandler(packageBody))
-                                    .addLast("cutOrCopyPathToStructure", new OperationNameCatalogServerHandler(packageBody))
-                                    .addLast("operationWithCatalog", new CreateCatalogServerHandler(packageBody))
-                                    .addLast("fileName",new ByteToNameFileHandler(packageBody))
-                                    .addLast("lengthFile",new ToLongDecoder(packageBody))
-                                    .addLast("loadfile",new ByteToFileServerHandler(packageBody))
-                                    .addLast("sendfile", new FileToByteHandler(packageBody));
+                                .addLast("command",new CommandServerHandler(packageBody))
+                                .addLast("getListCatalog",new StructureCatalogServerHandler(packageBody))
+                                .addLast("lengthFirst",new ToIntegerDecoder(packageBody))
+                                .addLast("userName",new ByteToNameUserHandler(packageBody))
+                                .addLast("getNameNewCatalog", new ByteToNameVariableHandler(packageBody))
+                                .addLast("deleteCatalog", new DeleteCatalogServerHandler(packageBody))
+                                .addLast("verifyRassword",new ByteToPasswordServerHandler(packageBody))
+                                .addLast("lengthSecond",new ToIntegerDecoder(packageBody))
+                                .addLast("getNewPathToCutOrCopy", new ByteToPathOperationCatalogHandler(packageBody))
+                                .addLast("cutOrCopyPathToStructure", new OperationNameCatalogServerHandler(packageBody))
+                                .addLast("operationWithCatalog", new CreateCatalogServerHandler(packageBody))
+                                .addLast("fileName",new ByteToNameFileHandler(packageBody))
+                                .addLast("lengthFile",new ToLongDecoder(packageBody))
+                                .addLast("chunkedWriter", new ChunkedWriteHandler())
+                                .addLast("loadfile",new ByteToFileServerHandler(packageBody))
+                                .addLast("sendfile", new FileToByteHandler(packageBody));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);

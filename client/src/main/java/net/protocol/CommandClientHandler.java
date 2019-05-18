@@ -53,6 +53,11 @@ public class CommandClientHandler extends AbstractHandler {
                     ReferenceCountUtil.release(msg);
                     packageBody.clear();
                     break;
+                case FILEERROR:
+                    StaticAlert.fileError();
+                    ReferenceCountUtil.release(msg);
+                    packageBody.clear();
+                    break;
                 default:
                     break;
             }

@@ -4,7 +4,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultFileRegion;
-import io.netty.channel.FileRegion;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.ReferenceCountUtil;
 import lombok.NonNull;
 import model.PackageBody;
@@ -12,12 +13,12 @@ import model.ProtocolCommand;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 
 /**
  * Класс содержит ряд готовых инстументов для отправки/загрузки файлов
@@ -90,18 +91,23 @@ public class Packages {
         sendIntAndBytes(channel,buf,path.getFileName().toString());
 
         //открываем байтовый поток для файла
-        try (FileInputStream in = new FileInputStream(path.toFile());) {
+        try (FileInputStream in = new FileInputStream(path.toFile()); RandomAccessFile raf = new RandomAccessFile(path.toFile(),"r");) {
             //читаем длину файла
             long len = Files.size(path);
-            //записываем длину файла в ByteBuf
+            //записываем длину файла
             buf.writeLong(len);
+            //записываем контрольную сумму файла
+            buf.writeLong(getMd5(path.toFile()));
             //отправляем длину файла в канал, увеличиваем счетчик ссылок на 1, ждем отправки всех байт
             channel.writeAndFlush(buf.retain()).await();
             buf.clear();
-            //Создаем новый DefaultFileRegion для файла, начиная с 0 и заканчивая в конце файла
-            FileRegion region = new DefaultFileRegion(in.getChannel(), 0, path.toFile().length());
-            //заливаем в канал байты содержимого файла
-            channel.writeAndFlush(region).await();
+            if (channel.pipeline().get(SslHandler.class) == null){
+                //SSL not enabled
+                channel.writeAndFlush(new DefaultFileRegion(in.getChannel(), 0, path.toFile().length())).await();
+            } else {
+                //SSL enabled
+                channel.writeAndFlush(new ChunkedFile(path.toFile())).await();
+            }
         }
         ReferenceCountUtil.release(buf);
     }
@@ -544,5 +550,40 @@ public class Packages {
                 channel,
                 ProtocolCommand.DENIED.getData()
         );
+    }
+
+    /**
+     * Метод используемый на сервере для уведомления клиента об ошибке при выполнении операции с файлом
+     *
+     * @param   channel
+     *          канал для отправки байт
+     * */
+    public static void fileError(@NonNull final Channel channel) throws InterruptedException {
+        sendCommandToChannel(
+                channel,
+                ProtocolCommand.FILEERROR.getData()
+        );
+    }
+
+    /**
+     * Метод рассчитывает контрольную сумму.
+     *
+     * @param   file
+     *          файл для которого рассчитывается контрольная сумма
+     *
+     * @return  long, контрольная сумма
+     * */
+    public static long getMd5(File file)
+    {
+        try (DigestInputStream stream = new DigestInputStream(new FileInputStream(file), MessageDigest.getInstance("MD5"))) {
+            byte[] buffer = new byte[65536];
+            int read = stream.read(buffer);
+            while (read >= 1) {
+                read = stream.read(buffer);
+            }
+            return new BigInteger(1, stream.getMessageDigest().digest()).longValue() ;
+        } catch (Exception ignored) {
+            return 0l;
+        }
     }
 }

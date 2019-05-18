@@ -122,6 +122,20 @@ public class StaticAlert {
         }
     }
 
+    /**
+     * Метод уведомляет об ошибке при выполнении операции с файлом
+     * */
+    public static void fileError(){
+        try {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Внимание.", ButtonType.OK);
+            alert.setHeaderText("При выполнении операции с файлом произошла ошибка");
+            alert.showAndWait();
+        } catch (Exception e){
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public static void showReport(String report){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setHeaderText(null);

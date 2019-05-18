@@ -45,7 +45,6 @@ public class ToIntegerDecoder extends AbstractHandler {
                 packageBody.setStatus(PackageBody.Status.READNAMEUSER);
             }
             if(packageBody.getStatus() == PackageBody.Status.READLENGTHNAMEFILE){
-                System.out.println(5);
                 packageBody.setLenghFileName(buf.readInt());
                 packageBody.setStatus(PackageBody.Status.READNAMEFILE);
             }
@@ -62,7 +61,6 @@ public class ToIntegerDecoder extends AbstractHandler {
                 packageBody.setStatus(PackageBody.Status.READNAMEDELETECATALOG);
             }
             if(packageBody.getStatus() == PackageBody.Status.READLENGTHCATALOGFORFILE){
-                System.out.println(2);
                 packageBody.setLengthVariable(buf.readInt());
                 packageBody.setStatus(PackageBody.Status.READNAMECATALOGFORFILE);
             }
