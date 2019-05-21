@@ -19,5 +19,6 @@ public enum MenuCommand {
     TREEVISIBLE,
     EXIT,
     MANUAL,
-    ABOUT
+    ABOUT,
+    CONNECT;
 }

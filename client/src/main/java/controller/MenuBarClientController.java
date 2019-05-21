@@ -25,6 +25,7 @@ public class MenuBarClientController extends Observable {
     @FXML private MenuItem search;
     @FXML private MenuItem manual;
     @FXML private MenuItem about;
+    @FXML private MenuItem connect;
 
     public boolean isVisibleTree(){
         return treeVisible.isSelected();
@@ -62,6 +63,8 @@ public class MenuBarClientController extends Observable {
                 break;
             case "download":
                 notifyObservers(MenuCommand.DOWNLOAD);
+            case "connect":
+                notifyObservers(MenuCommand.CONNECT);
                 break;
         }
     }

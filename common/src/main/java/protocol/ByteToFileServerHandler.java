@@ -32,8 +32,6 @@ public class ByteToFileServerHandler extends AbstractHandler{
     private byte[] dataArr;             //временный массив. Чтобы не создавать множество отдельных массивов, т.е. избежать мусора
     private FileOutputStream out;       //байтовый поток
     private long lengthFileLocal;       //переменная содержит размер файла
-    private ChannelHandlerContext ctxL;
-    private FileTimerTask fileTimerTask;
 
     public ByteToFileServerHandler(PackageBody packageBody) {
         this.packageBody = packageBody;
@@ -43,10 +41,6 @@ public class ByteToFileServerHandler extends AbstractHandler{
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         dataArr = new byte[1024];
-        this.ctxL = ctx;
-        Timer timer = new Timer(true);
-        fileTimerTask = new FileTimerTask();
-        timer.schedule(fileTimerTask, 1000, 1000);
     }
 
     @Override
@@ -81,7 +75,6 @@ public class ByteToFileServerHandler extends AbstractHandler{
                 out.write(dataArr,0,j);
                 //уменьшаем длину файла в пакете
                 packageBody.setLenghFile(packageBody.getLenghFile()-j);
-                fileTimerTask.increment();
             }
             //освобождаем сообщение
             ReferenceCountUtil.release(msg);
@@ -130,40 +123,11 @@ public class ByteToFileServerHandler extends AbstractHandler{
         }
     }
 
-    /**
-     * Класс задания проверяет изменилась ли длина файла в пакете за определенное время. Если не изменилась полагаем, что
-     * произошел сбой при передаче данных.
-     * */
-    class FileTimerTask extends TimerTask {
-        private int length1;
-        private int length2;
-
-        @Override
-        public void run() {
-
-            if(length1 > 0 && packageBody.getStatus() == PackageBody.Status.READFILE && length1 == length2){
-                length1 = length2 = 0;
-                //очищаем пакет
-                packageBody.clear();
-                //закрываем поток
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                out = null;
-                //отправляем сообщение с ошибкой
-                try {
-                    Packages.fileError(ctxL.channel());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                length1 = length2;
-            }
-        }
-        public void increment(){
-            length2++;
+    public void closeileOutputStream(){
+        try {
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

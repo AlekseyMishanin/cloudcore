@@ -1,5 +1,6 @@
 package dialog;
 
+import javafx.scene.AccessibleRole;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import model.EnumOption;
@@ -7,6 +8,8 @@ import org.apache.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Optional;
 
 /**
@@ -35,6 +38,19 @@ public class StaticAlert {
         textInputDialog.setTitle(typeInputDialog.getValue());
         textInputDialog.setHeaderText("Help: the rules for writing a name are defined by the file system");
         textInputDialog.setContentText("Please, enter new name:");
+        textInputDialog.getEditor().getStyleClass().add("password-field");
+        textInputDialog.getEditor().setAccessibleRole(AccessibleRole.PASSWORD_FIELD);
+        return textInputDialog.showAndWait();
+    }
+
+    /**
+     * Метод запрашивает пароль для установления повторного соединения с сервером
+     * */
+    public static Optional<String> getPassword() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        PasswordInputDialog textInputDialog = new PasswordInputDialog();
+        textInputDialog.setTitle(EnumOption.PASSWORD.getValue());
+        textInputDialog.setHeaderText("");
+        textInputDialog.setContentText("Please, enter your password:");
         return textInputDialog.showAndWait();
     }
 
@@ -82,57 +98,63 @@ public class StaticAlert {
      * Метод запрашивает подтверждение выполнения операции
      * */
     public static ButtonBar.ButtonData confirmOperation(){
-        try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.YES, ButtonType.NO);
-            alert.setHeaderText("Вы действительно хотите выполнить удаление?");
-            alert.showAndWait();
-            return alert.getResult().getButtonData();
-        } catch (Exception e){
-            logger.error(e.getMessage());
-            return null;
-        }
+        Alert alert = createInfoAllert("Вы действительно хотите выполнить удаление?");
+        return alert != null ? alert.getResult().getButtonData() : null;
     }
 
     /**
      * Метод выводит подсказку
      * */
     public static ButtonBar.ButtonData tipOperation(){
-        try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Будьте внимательны.", ButtonType.OK);
-            alert.setHeaderText("Для выполнения операции необходимо выбрать каталог");
-            alert.showAndWait();
-            return alert.getResult().getButtonData();
-        } catch (Exception e){
-            logger.error(e.getMessage());
-            return null;
-        }
+        Alert alert = createInfoAllert("Для выполнения операции необходимо выбрать каталог");
+        return alert != null ? alert.getResult().getButtonData() : null;
     }
 
     /**
      * Метод уведомляет об отказе сервера в выполнении операции
      * */
     public static void deniedOperation(){
-        try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Внимание.", ButtonType.OK);
-            alert.setHeaderText("Сервер отказал в выполнении операции");
-            alert.showAndWait();
-        } catch (Exception e){
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        }
+        createInfoAllert("Сервер отказал в выполнении операции");
     }
 
     /**
      * Метод уведомляет об ошибке при выполнении операции с файлом
      * */
     public static void fileError(){
+        createInfoAllert("При выполнении операции с файлом произошла ошибка");
+    }
+
+    /**
+     * Метод уведомляет об ошибке произошедшей в сети
+     * */
+    public static void networkError(){
+        createInfoAllert("В сети произошла ошибка. Соединение было разорвано.");
+    }
+
+    /**
+     * Метод уведомляет о том что соединение успешно установлено
+     * */
+    public static void connectionIsCreate(){
+        createInfoAllert("Соединение с сервером успешно установлено.");
+    }
+
+    /**
+     * Метод уведомляет о том что соединение уже существует
+     * */
+    public static void connectionIsGood(){
+        createInfoAllert("Соединение с сервером ранее было установлено.");
+    }
+
+    private static Alert createInfoAllert(String message){
         try {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Внимание.", ButtonType.OK);
-            alert.setHeaderText("При выполнении операции с файлом произошла ошибка");
+            alert.setHeaderText(message);
             alert.showAndWait();
+            return alert;
         } catch (Exception e){
             logger.error(e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 

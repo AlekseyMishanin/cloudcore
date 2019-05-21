@@ -1,5 +1,6 @@
 package net;
 
+import dialog.StaticAlert;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -42,8 +43,6 @@ public class NettyNetwork {
     }
 
     private NettyNetwork() {
-
-        countDownLatch = new CountDownLatch(1);
         packageBody = new PackageBody();
     }
 
@@ -56,6 +55,8 @@ public class NettyNetwork {
     }
 
     public void start() {
+
+        countDownLatch = new CountDownLatch(1);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -125,12 +126,16 @@ public class NettyNetwork {
      *          путь к файлу на стороне сервера
      * */
     public void loadData(Path pathToDownload, String pathToload){
-        try {
-            //вызываем статический метод загрузки файла
-            Packages.loadFromServerToClient(currentChannel, pathToDownload, pathToload);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()) {
+            try {
+                //вызываем статический метод загрузки файла
+                Packages.loadFromServerToClient(currentChannel, pathToDownload, pathToload);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
@@ -141,80 +146,116 @@ public class NettyNetwork {
      *          путь к файлу на стороне клиента
      * */
     public void sendData(String cloudCatalog, Path path) throws InterruptedException {
-        try {
-            //вызываем статический метод для отправки файла
-            Packages.sendFromClienToServer(currentChannel, cloudCatalog ,path);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()){
+            try {
+                //вызываем статический метод для отправки файла
+                Packages.sendFromClienToServer(currentChannel, cloudCatalog ,path);
+            } catch (InterruptedException|IOException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void tryAuthorization(@NonNull String login, int password){
-        Packages.authorization(currentChannel,login, password);
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+//        if(isConnectionOpened()){
+
+            Packages.authorization(currentChannel,login, password);
+//        } else {
+//            StaticAlert.networkError();
+//        }
     }
 
     public void tryRegistration(@NonNull String login, int password){
-        Packages.registration(currentChannel,login, password);
+        if(isConnectionOpened()){
+            Packages.registration(currentChannel,login, password);
+        } else {
+            StaticAlert.networkError();
+        }
     }
 
     public void requestDirectoryStructure(){
-        try {
-            Packages.requestDirectoryStructure(currentChannel);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()){
+            try {
+                Packages.requestDirectoryStructure(currentChannel);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void requestCteareNewCatalog(String path){
-        try {
-            Packages.requestCteareNewCatalog(currentChannel, path);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()){
+            try {
+                Packages.requestCteareNewCatalog(currentChannel, path);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void requestDeleteCatalog(String catalog){
-        try {
-            Packages.requestDeleteCatalog(currentChannel, catalog);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()) {
+            try {
+                Packages.requestDeleteCatalog(currentChannel, catalog);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void requestCopyCatalog(Path oldCatalog, String newCatalog){
-        try {
-            Packages.requestCopyCatalog(currentChannel, oldCatalog, newCatalog);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()){
+            try {
+                Packages.requestCopyCatalog(currentChannel, oldCatalog, newCatalog);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void requestCutCatalog(Path oldCatalog, String newCatalog){
-        try {
-            Packages.requestCutCatalog(currentChannel, oldCatalog, newCatalog);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()) {
+            try {
+                Packages.requestCutCatalog(currentChannel, oldCatalog, newCatalog);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 
     public void requestRenameCatalog(Path oldCatalog, String newCatalog){
-        try {
-            Packages.requestRenameCatalog(currentChannel, oldCatalog, newCatalog);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
+        if(isConnectionOpened()) {
+            try {
+                Packages.requestRenameCatalog(currentChannel, oldCatalog, newCatalog);
+            } catch (InterruptedException e) {
+                logger.error(e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            StaticAlert.networkError();
         }
     }
 

@@ -1,5 +1,6 @@
 package controller;
 
+import dialog.StaticAlert;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,9 +17,11 @@ import utility.TreeViewUtility;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Optional;
 
 /**
  * Класс контроллера для обработки событий основного рабочего окна.
@@ -201,6 +204,23 @@ public class OperatingPanelController implements Observer {
                 case DOWNLOAD:
                     LoadFiles.getInstance().downloadFileClient(rootNode.getScene().getWindow());
                     break;
+                case CONNECT:
+                    if(NettyNetwork.getInstance().isConnectionOpened()){
+                        StaticAlert.connectionIsGood();
+                    } else {
+                        try {
+                            Optional<String> result = StaticAlert.getPassword();
+                            if(result.isPresent()){
+                                int psw = result.get().hashCode();
+                                NettyNetwork.getInstance().start();
+
+                                NettyNetwork.getInstance().tryAuthorization(User.SETTING.getName(),psw);
+                            }
+                        } catch (NoSuchMethodException|InvocationTargetException|IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
                 case ABOUT:
                 case MANUAL:
                 case SEARCH:
@@ -254,6 +274,18 @@ public class OperatingPanelController implements Observer {
      * */
     public void updateTreeViewCloud(String struct){
         TreeViewUtility.updateStructureTreeViewCloud(treeVievCloud,struct);
+    }
+
+    /**
+     * Метод уведомляет о успешном соединении
+     * */
+    public void alertAboutCreateConnection(){
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                StaticAlert.connectionIsCreate();
+            }
+        });
     }
 }
 

@@ -86,7 +86,6 @@ public class FileToByteHandler extends AbstractHandler{
                                         Paths.get(path.toAbsolutePath().toString() +
                                                 pathToFile.substring(pathToFile.lastIndexOf(PackageBody.systemSeparator))));
 
-
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {

@@ -1,8 +1,10 @@
 package net.protocol;
 
+import dialog.StaticAlert;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.ReferenceCountUtil;
+import javafx.application.Platform;
 import model.PackageBody;
 import model.ProtocolCommand;
 import protocol.AbstractHandler;
@@ -36,12 +38,19 @@ public class ByteToBoolResponseClientHandler extends AbstractHandler {
             }
             boolean bool = buf.readBoolean();
             if(packageBody.getCommand()==ProtocolCommand.AUTHRESPONSE){
-                //через список контроллеров, передаем результат авторизации в метод контроллера
-                ListController.getInstance().getAuthorisationController().resultAuthorisation(bool);
+                if(ListController.getInstance().getAuthorisationController() != null) {
+                    //через список контроллеров, передаем результат авторизации в метод контроллера
+                    ListController.getInstance().getAuthorisationController().resultAuthorisation(bool);
+                } else if (bool && ListController.getInstance().getOperatingPanelController() != null) {
+                    //через список контроллеров, передаем результат авторизации в метод контроллера
+                    ListController.getInstance().getOperatingPanelController().alertAboutCreateConnection();
+                }
             }
             if(packageBody.getCommand()==ProtocolCommand.REGRESPONSE){
-                //через список контроллеров, передаем результат регистрации в метод контроллера
-                ListController.getInstance().getAuthorisationController().resultRegistration(bool);
+                if(ListController.getInstance().getAuthorisationController() != null) {
+                    //через список контроллеров, передаем результат регистрации в метод контроллера
+                    ListController.getInstance().getAuthorisationController().resultRegistration(bool);
+                }
             }
             ReferenceCountUtil.release(msg);
             //очищаем пакет

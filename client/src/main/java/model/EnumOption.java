@@ -5,6 +5,7 @@ public enum EnumOption{
     CREATEFILE("Create new file"),
     CREATECATALOG("Create new catalog"),
     SEARCH("Search file or catalog"),
+    PASSWORD("Enter password"),
     COPY(""),
     CUT("");
 

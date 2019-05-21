@@ -12,6 +12,7 @@
                 <items>
                     <MenuItem fx:id="upload" text="Upload" onAction="#getMenuCommand"/>
                     <MenuItem fx:id="download" text="Download" onAction="#getMenuCommand"/>
+                    <MenuItem fx:id="connect" text="Connect" onAction="#getMenuCommand"/>
                     <CheckMenuItem fx:id="treeVisible" text="Tree visible" selected="true" onAction="#getMenuCommand"/>
                     <SeparatorMenuItem  />
                     <MenuItem fx:id="exit" text="Exit" onAction="#getMenuCommand"/>

@@ -93,7 +93,7 @@ public class ByteToFileClientHandler extends AbstractHandler {
     class FileTimerTask extends TimerTask{
         private int length1;
         private int length2;
-     
+
         @Override
         public void run() {
 

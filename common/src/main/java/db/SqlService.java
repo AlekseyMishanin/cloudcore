@@ -20,7 +20,10 @@ public class SqlService {
     private Statement statement = null;
     private Connection connection = null;
 
-    private SqlService(){
+    private SqlService(){}
+
+    public static SqlService getInstance(){ return sqlService;}
+    public void start(){
         try {
             this.connection = DataSource.getInstance().getConnection();
             this.statement = DataSource.getInstance().getStatement();
@@ -28,8 +31,6 @@ public class SqlService {
             e.printStackTrace();
         }
     }
-
-    public static SqlService getInstance(){ return sqlService;}
 
 
     public int verifyLoginAndPass(@NonNull String login, int pass){

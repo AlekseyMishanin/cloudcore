@@ -1,11 +1,9 @@
 package server;
 
+import db.SqlService;
 import db.arhive.AuthService;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -18,14 +16,35 @@ import model.PackageBody;
 import protocol.*;
 import protocol.attribute.Client;
 import protocol.attribute.PoolConstantName;
+import utility.Packages;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ServerNetty implements PoolConstantName {
 
+    //счетчик подключений
+    private static AtomicInteger countChannel = new AtomicInteger();
+    //список активных пользовательских соединений
+    private final ConcurrentHashMap<Integer, UserChannel> listUserChannel = new ConcurrentHashMap<>();
+    //таймер для запуска задания наблюдения за пользователями
+    private final Timer timer = new Timer(true);
+    //задание наблюдения
+    private FileTimerTask fileTimerTask;
+
+    public ServerNetty() {
+        fileTimerTask  = new FileTimerTask();
+        //задание срабатывает каждую секунду
+        timer.schedule(fileTimerTask, 1000, 1000);
+    }
+
     public void run() throws Exception{
-        AuthService.getInstance().start();
+        SqlService.getInstance().start();
         EventLoopGroup mainGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try{
@@ -60,6 +79,9 @@ public class ServerNetty implements PoolConstantName {
                                 .addLast("chunkedWriter", new ChunkedWriteHandler())
                                 .addLast("loadfile",new ByteToFileServerHandler(packageBody))
                                 .addLast("sendfile", new FileToByteHandler(packageBody));
+
+                            //добавляем канал пользователя в список для наблюдения
+                            listUserChannel.put(countChannel.incrementAndGet(),new UserChannel(packageBody,socketChannel));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -76,5 +98,66 @@ public class ServerNetty implements PoolConstantName {
     public static void main(String[] args) throws Exception {
         ServerNetty server = new ServerNetty();
         server.run();
+    }
+
+    /**
+     * Класс инкапсулирует объект за состоянием которого наблюдает сервер.
+     * */
+    private class UserChannel{
+
+        private PackageBody packageBody;    //объект протокола
+        private Channel channel;            //ссылка на канал
+        private long lengthFile;            //длина файла
+
+        public UserChannel(PackageBody packageBody, Channel channel) {
+            this.packageBody = packageBody;
+            this.channel = channel;
+        }
+
+        public void setLengthFile(long lengthFile) {
+            this.lengthFile = lengthFile;
+        }
+
+        public boolean isLengthEquals(){
+            return lengthFile == packageBody.getLenghFile();
+        }
+    }
+
+    /**
+     * Класс задания проверяет изменилась ли длина файла в пакете за определенное время. Если не изменилась полагаем, что
+     * произошел сбой при передаче данных.
+     * */
+    private class FileTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            listUserChannel.forEach((id, user) -> {
+                //если канал не активен
+                if (!user.channel.isActive()) {
+                    //удаляем объект из списка наблюдаемых объектов
+                    listUserChannel.remove(id);
+                } else {
+                    //если состояние "чтение файла" и если длина файла из протокола равна длине файла которая была в предыдущем временном периоде
+                    if (user.packageBody.getStatus() == PackageBody.Status.READFILE && user.isLengthEquals()) {
+                        //очищаем объект протокола
+                        user.packageBody.clear();
+                        //закрываем в хандлере байтовый поток для записи файла
+                        user.channel.pipeline().get(ByteToFileServerHandler.class).closeileOutputStream();
+                        try {
+                            //отрпалвяем пользователю сообщение о сбое
+                            Packages.fileError(user.channel);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (user.packageBody.getStatus() == PackageBody.Status.READFILE) {
+                        //запоминаем длину файла из объекта протокола
+                        user.setLengthFile(user.packageBody.getLenghFile());
+                    } else {
+                        //сбрасываем значение временной переменной под длину файла
+                        user.setLengthFile(-1);
+                    }
+                }
+            });
+        }
     }
 }
